@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from datetime import UTC, datetime
 
 from playwright.async_api import Browser
 
@@ -23,6 +24,7 @@ from tavily_scraper.core.models import (
     RunnerContext,
     RunSummary,
     UrlJob,
+    UrlStats,
     fetch_result_to_url_stats,
 )
 from tavily_scraper.core.robots import make_robots_client
@@ -292,6 +294,95 @@ async def run_all(
         target_success=target_success,
         use_browser=use_browser,
     )
+
+
+async def run_all_sharded(
+    config: RunConfig | None = None,
+    *,
+    use_browser: bool = True,
+) -> RunSummary:
+    """
+    Sharded batch runner with checkpoint support.
+
+    Processes URLs in shards with resumability via checkpoints.
+
+    Args:
+        config: Optional pre-loaded configuration
+        use_browser: Enable browser fallback
+
+    Returns:
+        RunSummary containing aggregate metrics
+    """
+    from tavily_scraper.pipelines.shard_runner import run_shard
+    from tavily_scraper.utils.io import make_shards
+
+    config = config or load_run_config()
+    urls = load_urls_from_txt(config.urls_path)
+
+    if not urls:
+        msg = f"No URLs found at {config.urls_path}"
+        raise RuntimeError(msg)
+
+    jobs = make_url_jobs(urls)
+    shards = make_shards(jobs, config.shard_size)
+
+    # Setup context
+    proxy_config = None
+    proxy_manager = None
+    if config.proxy_config_path and config.proxy_config_path.exists():
+        proxy_config = load_proxy_config_from_json(config.proxy_config_path)
+        proxy_manager = ProxyManager.from_proxy_config(proxy_config)
+
+    scheduler = DomainScheduler(global_limit=config.httpx_max_concurrency)
+    robots_client = await make_robots_client(config, proxy_config)
+    http_client = make_http_client(config, proxy_manager)
+
+    ctx = RunnerContext(
+        run_config=config,
+        proxy_manager=proxy_manager,
+        scheduler=scheduler,
+        robots_client=robots_client,
+        http_client=http_client,
+    )
+
+    all_stats: list[UrlStats] = []
+    run_id = datetime.now(UTC).isoformat()
+    checkpoints_dir = config.data_dir / "checkpoints"
+    checkpoints_dir.mkdir(parents=True, exist_ok=True)
+
+    if use_browser:
+        from tavily_scraper.pipelines.browser_fetcher import browser_lifecycle
+
+        async with browser_lifecycle(config, proxy_manager) as browser:
+            for shard_id, shard_jobs in enumerate(shards):
+                checkpoint_path = checkpoints_dir / f"{run_id}_shard_{shard_id}.json"
+                shard_stats = await run_shard(
+                    run_id, shard_id, shard_jobs, ctx, checkpoint_path, browser
+                )
+                all_stats.extend(shard_stats)
+    else:
+        for shard_id, shard_jobs in enumerate(shards):
+            checkpoint_path = checkpoints_dir / f"{run_id}_shard_{shard_id}.json"
+            shard_stats = await run_shard(
+                run_id, shard_id, shard_jobs, ctx, checkpoint_path, None
+            )
+            all_stats.extend(shard_stats)
+
+    # Write stats
+    stats_path = config.data_dir / "stats.jsonl"
+    write_stats_jsonl(all_stats, stats_path)
+
+    # Compute summary
+    summary = compute_run_summary(all_stats)
+    summary_path = config.data_dir / "run_summary.json"
+    summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+
+    # Cleanup
+    await http_client.aclose()
+    await robots_client._client.aclose()
+
+    return summary
+
 
 
 

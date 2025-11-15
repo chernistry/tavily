@@ -280,6 +280,27 @@ class ResultStore:
 
 # ==== CHECKPOINT MANAGEMENT ==== #
 
+def make_shards(jobs: list[UrlJob], shard_size: int) -> list[list[UrlJob]]:
+    """
+    Split URL jobs into shards and assign shard metadata.
+
+    Args:
+        jobs: List of URL jobs to shard
+        shard_size: Maximum number of jobs per shard
+
+    Returns:
+        List of shards, each containing a list of jobs with shard_id set
+    """
+    shards: list[list[UrlJob]] = []
+    for start in range(0, len(jobs), shard_size):
+        shard_jobs = list(jobs[start : start + shard_size])
+        shard_id = len(shards)
+        for job in shard_jobs:
+            job["shard_id"] = shard_id
+        shards.append(shard_jobs)
+    return shards
+
+
 def save_checkpoint(checkpoint: dict[str, Any], path: Path) -> None:
     """
     Save checkpoint to JSON file.
