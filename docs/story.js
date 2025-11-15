@@ -388,7 +388,6 @@ function renderLatencySummary(summary) {
 function renderContentLenHist(stats) {
   const filtered = stats.filter(
     (r) =>
-      (r.status === "success" || r.status === "too_large") &&
       r.content_len != null &&
       r.content_len > 0,
   );
