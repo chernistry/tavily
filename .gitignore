@@ -69,12 +69,11 @@ Thumbs.db
 htmlcov/
 .tox/
 
-# Scraped data
 data/
+!docs/data/
 output/
 results/
 *.csv
-*.json
 !requirements.txt
 !package.json
 !.sdd/raw/*.csv

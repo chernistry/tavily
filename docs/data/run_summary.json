@@ -1,0 +1,17 @@
+{
+  "total_urls": 1000,
+  "stats_rows": 1000,
+  "success_rate": 0.185,
+  "http_error_rate": 0.345,
+  "timeout_rate": 0.01,
+  "captcha_rate": 0.018,
+  "robots_block_rate": 0.43,
+  "httpx_share": 0.945,
+  "playwright_share": 0.055,
+  "p50_latency_httpx_ms": 1568,
+  "p95_latency_httpx_ms": 5799,
+  "p50_latency_playwright_ms": 3229,
+  "p95_latency_playwright_ms": 10002,
+  "avg_content_len_httpx": 668143,
+  "avg_content_len_playwright": 2420
+}
