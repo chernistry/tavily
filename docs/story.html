@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tavily Scraper // Run Storyboard</title>
+    <meta name="description" content="Interactive one-pager telling the story of a Tavily scraping run: reliability, latency, cost, content size, and blockers." />
+    <link rel="stylesheet" href="story.css" />
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" defer></script>
+    <script src="story.js" defer></script>
+  </head>
+  <body>
+    <header class="page-header">
+      <div class="header-main">
+        <div>
+          <h1>Tavily Web Scraper — Run Storyboard</h1>
+          <p class="tagline">
+            Hybrid HTTP&nbsp;+&nbsp;Playwright run, told as a one‑page control room:
+            reliability, latency, cost, content size, and blockers.
+          </p>
+        </div>
+        <div class="run-meta">
+          <div class="meta-pill">
+            <span class="meta-label">Total URLs</span>
+            <span id="meta-total-urls" class="meta-value">–</span>
+          </div>
+          <div class="meta-pill">
+            <span class="meta-label">Success rate</span>
+            <span id="meta-success-rate" class="meta-value">–</span>
+          </div>
+          <div class="meta-pill">
+            <span class="meta-label">HTTP / Browser</span>
+            <span id="meta-method-share" class="meta-value">–</span>
+          </div>
+        </div>
+      </div>
+      <div class="tldr" id="tldr">
+        <strong>TL;DR.</strong>
+        <span id="tldr-text">
+          Loading run metrics&hellip;
+        </span>
+      </div>
+    </header>
+
+    <main class="page-main">
+      <section aria-labelledby="snapshot-heading" class="section">
+        <div class="section-header">
+          <h2 id="snapshot-heading">Snapshot — Is the run healthy?</h2>
+        </div>
+        <div class="card-grid">
+          <article class="stat-card">
+            <h3>Reliability</h3>
+            <p class="stat-main" id="card-success">–</p>
+            <p class="stat-sub" id="card-failures">–</p>
+          </article>
+          <article class="stat-card">
+            <h3>Blockers</h3>
+            <p class="stat-main" id="card-blockers">–</p>
+            <p class="stat-sub">
+              Robots.txt, CAPTCHAs, and hard anti‑bot walls.
+            </p>
+          </article>
+          <article class="stat-card">
+            <h3>Latency P95</h3>
+            <p class="stat-main" id="card-latency">–</p>
+            <p class="stat-sub">
+              HTTP vs Playwright tail latency (ms).
+            </p>
+          </article>
+          <article class="stat-card">
+            <h3>Content Size</h3>
+            <p class="stat-main" id="card-content">–</p>
+            <p class="stat-sub">
+              Average bytes per method, plus <code>too_large</code>.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section aria-labelledby="reliability-heading" class="section">
+        <div class="section-header">
+          <h2 id="reliability-heading">Reliability &amp; Blockers</h2>
+          <p class="section-subtitle">
+            How many URLs actually yield usable content, and what stops the rest?
+          </p>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-title">
+              <h3>Status distribution</h3>
+              <span class="chart-note">Each URL classified into success / error / robots / CAPTCHA / too_large / other.</span>
+            </div>
+            <div id="chart-status" class="chart"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">
+              <h3>Block types</h3>
+              <span class="chart-note">Robots vs CAPTCHA vs rate limits vs other bot walls.</span>
+            </div>
+            <div id="chart-block-types" class="chart"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">
+              <h3>CAPTCHA vendors</h3>
+              <span class="chart-note">reCAPTCHA, Turnstile, hCaptcha, Cloudflare, generic blocks.</span>
+            </div>
+            <div id="chart-captcha-vendors" class="chart"></div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="latency-heading" class="section">
+        <div class="section-header">
+          <h2 id="latency-heading">Latency &amp; Cost</h2>
+          <p class="section-subtitle">
+            HTTP first for cheap coverage; Playwright reserved for hard cases.
+          </p>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-title">
+              <h3>Method share</h3>
+              <span class="chart-note">Share of URLs served by HTTP vs Playwright.</span>
+            </div>
+            <div id="chart-method-share" class="chart"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">
+              <h3>Latency distribution</h3>
+              <span class="chart-note">Overlap of per‑URL latency by method (ms).</span>
+            </div>
+            <div id="chart-latency-hist" class="chart"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">
+              <h3>P50 / P95 latency by method</h3>
+              <span class="chart-note">End‑to‑end P50 and P95 from run summary.</span>
+            </div>
+            <div id="chart-latency-summary" class="chart"></div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="content-heading" class="section">
+        <div class="section-header">
+          <h2 id="content-heading">Content Size &amp; Quality</h2>
+          <p class="section-subtitle">
+            How big are pages by method, and where do we hit size guardrails?
+          </p>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-title">
+              <h3>Content length distribution</h3>
+              <span class="chart-note">Log‑scaled bytes per response, filtered to success / too_large.</span>
+            </div>
+            <div id="chart-content-len" class="chart"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">
+              <h3>Status vs content length</h3>
+              <span class="chart-note">Median size per status bucket.</span>
+            </div>
+            <div id="chart-content-by-status" class="chart"></div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="errors-heading" class="section">
+        <div class="section-header">
+          <h2 id="errors-heading">Errors, Retries &amp; Domains</h2>
+          <p class="section-subtitle">
+            Where do errors cluster, and how hard does the pipeline try before giving up?
+          </p>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-title">
+              <h3>HTTP status codes (errors)</h3>
+              <span class="chart-note">Distribution of HTTP codes for <code>http_error</code> URLs.</span>
+            </div>
+            <div id="chart-http-status" class="chart"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">
+              <h3>Retries</h3>
+              <span class="chart-note">How many attempts per URL before we stop.</span>
+            </div>
+            <div id="chart-retries" class="chart"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-title">
+              <h3>Top error domains</h3>
+              <span class="chart-note">Where HTTP errors concentrate (top 10 domains).</span>
+            </div>
+            <div id="chart-error-domains" class="chart"></div>
+          </div>
+        </div>
+      </section>
+
+      <section aria-labelledby="stages-heading" class="section">
+        <div class="section-header">
+          <h2 id="stages-heading">Pipeline Behavior</h2>
+          <p class="section-subtitle">
+            How often do we stay on the HTTP fast path vs escalate to browser fallback?
+          </p>
+        </div>
+        <div class="chart-grid">
+          <div class="chart-card">
+            <div class="chart-title">
+              <h3>Stage mix</h3>
+              <span class="chart-note">Primary vs fallback stage for each method.</span>
+            </div>
+            <div id="chart-stage-mix" class="chart"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

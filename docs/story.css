@@ -1,0 +1,236 @@
+:root {
+  --primary-font: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --bg-color: #f8f9fa;
+  --surface-color: #ffffff;
+  --text-color: #212529;
+  --secondary-color: #6c757d;
+  --accent-color: #0d6efd;
+  --border-color: #dee2e6;
+  --shadow-color: rgba(0, 0, 0, 0.05);
+  --border-radius-lg: 12px;
+  --border-radius-md: 8px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--primary-font);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+body {
+  min-height: 100vh;
+}
+
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: 0 2px 4px var(--shadow-color);
+  padding: 12px 24px;
+}
+
+.header-main {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.header-main h1 {
+  margin: 0 0 6px;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.tagline {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--secondary-color);
+}
+
+.run-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.meta-pill {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 6px 10px;
+  border-radius: var(--border-radius-md);
+  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 4px var(--shadow-color);
+  min-width: 120px;
+}
+
+.meta-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--secondary-color);
+}
+
+.meta-value {
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.tldr {
+  max-width: 1120px;
+  margin: 10px auto 0;
+  padding: 8px 12px;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  background: #eef4ff;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  display: flex;
+  gap: 8px;
+}
+
+.tldr strong {
+  color: var(--accent-color);
+}
+
+.page-main {
+  max-width: 1120px;
+  margin: 18px auto 32px;
+  padding: 0 24px;
+}
+
+.section {
+  margin-top: 20px;
+}
+
+.section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.section-subtitle {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--secondary-color);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  border-radius: var(--border-radius-lg);
+  padding: 16px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.stat-card h3 {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+  color: var(--secondary-color);
+  font-weight: 600;
+}
+
+.stat-main {
+  margin: 0;
+  font-size: 1.3rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-sub {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  color: var(--secondary-color);
+}
+
+.chart-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.chart-card {
+  border-radius: var(--border-radius-lg);
+  padding: 16px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.chart-title {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.chart-title h3 {
+  margin: 0;
+  font-size: 0.96rem;
+}
+
+.chart-note {
+  font-size: 0.8rem;
+  color: var(--secondary-color);
+}
+
+.chart {
+  width: 100%;
+  min-height: 220px;
+}
+
+code {
+  font-family: "SF Mono", ui-monospace, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+  font-size: 0.78rem;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: #f1f3f5;
+  border: 1px solid var(--border-color);
+}
+
+@media (max-width: 720px) {
+  .header-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .run-meta {
+    justify-content: flex-start;
+  }
+
+  .page-header {
+    padding-inline: 16px;
+  }
+
+  .page-main {
+    padding-inline: 16px;
+  }
+}
