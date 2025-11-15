@@ -29,7 +29,7 @@ from tavily_scraper.core.models import (
     UrlJob,
     make_initial_fetch_result,
 )
-from tavily_scraper.utils.captcha import detect_captcha_http
+from tavily_scraper.utils.captcha import detect_captcha_http, detect_captcha_playwright
 from tavily_scraper.utils.logging import get_logger
 
 logger = get_logger(__name__)
@@ -254,13 +254,17 @@ async def fetch_one(
                     ctx.scheduler.release(domain)
                     return result
 
-                # --► CAPTCHA DETECTION
+                # --► CAPTCHA DETECTION (HTTP-level)
                 detection = detect_captcha_http(
                     result.get("http_status") or 0,
                     url,
                     {},
                     content,
                 )
+
+                # --► CAPTCHA DETECTION (Playwright-level with frames)
+                if not detection["present"]:
+                    detection = await detect_captcha_playwright(page)
 
                 if detection["present"]:
                     result["captcha_detected"] = True

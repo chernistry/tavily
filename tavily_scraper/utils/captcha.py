@@ -98,6 +98,23 @@ def detect_captcha_http(
     confidence = 0.0
     reasons: list[str] = []
 
+    # --► URL PATTERN DETECTION
+    url_lower = url.lower()
+    if any(
+        pattern in url_lower
+        for pattern in ["captcha", "challenge", "robot", "verify-human", "challenges.cloudflare.com"]
+    ):
+        confidence = 0.6
+        reasons.append("captcha/challenge in URL")
+
+    # --► HEADER SIGNALS
+    server = headers.get("server", "").lower()
+    if "cloudflare" in server or "cf-ray" in headers:
+        if status_code in {403, 503}:
+            confidence = max(confidence, 0.7)
+            reasons.append("cloudflare + blocking status")
+
+
     # --► VENDOR WIDGET/SCRIPT DETECTION (HIGH CONFIDENCE)
 
     if "g-recaptcha" in body_lc or "recaptcha/api.js" in body_lc:
@@ -188,3 +205,92 @@ def is_captcha_page(content: str | None) -> bool:
 
     detection = detect_captcha_http(200, "", {}, content)
     return detection["present"]
+
+
+async def detect_captcha_playwright(page) -> CaptchaDetection:  # type: ignore[no-untyped-def]
+    """
+    Detect CAPTCHA from Playwright page after JS execution.
+
+    Provides enhanced detection using:
+    - Frame URLs (for embedded CAPTCHA iframes)
+    - Post-JS DOM content
+    - Final page URL
+
+    Args:
+        page: Playwright Page object
+
+    Returns:
+        CaptchaDetection with presence, vendor, confidence, and reason
+    """
+    url = page.url
+    content = (await page.content()).lower()
+    frames = page.frames
+
+    vendor: CaptchaVendor | None = None
+    reasons: list[str] = []
+    conf = 0.0
+
+    # --► FRAME URL DETECTION
+    frame_urls = " ".join(f.url.lower() for f in frames if f.url)
+
+    if "google.com/recaptcha" in content or "g-recaptcha" in content:
+        vendor = "recaptcha"
+        conf = 0.95
+        reasons.append("recaptcha widget/script")
+
+    elif "hcaptcha.com" in frame_urls or "h-captcha" in content:
+        vendor = "hcaptcha"
+        conf = 0.95
+        reasons.append("hcaptcha widget in frame")
+
+    elif "cf-turnstile" in content or "challenges.cloudflare.com/turnstile" in content:
+        vendor = "turnstile"
+        conf = 0.95
+        reasons.append("turnstile widget")
+
+    # --► CLOUDFLARE CHALLENGE
+    if "checking your browser before accessing" in content:
+        vendor = vendor or "cloudflare_block"
+        conf = max(conf, 0.9)
+        reasons.append("cloudflare browser check")
+
+    # --► GENERIC VERIFICATION TEXT
+    generic_phrases = [
+        "please verify you are a human",
+        "are you a robot",
+        "access has been denied",
+        "automation tools to browse the website",
+    ]
+    generic_hits = sum(phrase in content for phrase in generic_phrases)
+
+    if generic_hits >= 2 and conf < 0.8:
+        vendor = vendor or "generic_block"
+        conf = 0.8
+        reasons.append(f"generic verification text ({generic_hits} hits)")
+
+    # --► URL PATTERN DETECTION
+    url_lower = url.lower()
+    if any(
+        pattern in url_lower
+        for pattern in ["captcha", "challenge", "robot", "verify-human"]
+    ):
+        if not vendor:
+            vendor = "unknown"
+            conf = 0.7
+        reasons.append("captcha/challenge in URL")
+
+    if vendor:
+        return {
+            "present": True,
+            "vendor": vendor,
+            "confidence": conf,
+            "reason": "; ".join(reasons),
+        }
+
+    return {
+        "present": False,
+        "vendor": None,
+        "confidence": 0.0,
+        "reason": "",
+    }
+
