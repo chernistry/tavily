@@ -195,7 +195,7 @@ function renderStatusChart(stats) {
 
   const layout = {
     ...basePlotLayout,
-    margin: { t: 30, l: 40, r: 10, b: 60 },
+    margin: { t: 40, l: 40, r: 10, b: 60 },
     yaxis: { title: "Count", automargin: true },
     xaxis: { title: "Status", automargin: true },
   };
@@ -222,7 +222,7 @@ function renderBlockTypesChart(stats) {
 
   const layout = {
     ...basePlotLayout,
-    margin: { t: 30, l: 40, r: 10, b: 60 },
+    margin: { t: 40, l: 40, r: 10, b: 60 },
     yaxis: { title: "Blocked URLs", automargin: true },
     xaxis: { title: "Block type", automargin: true },
   };
@@ -252,7 +252,7 @@ function renderCaptchaVendorsChart(stats) {
 
   const layout = {
     ...basePlotLayout,
-    margin: { t: 30, l: 40, r: 10, b: 60 },
+    margin: { t: 40, l: 40, r: 10, b: 60 },
     yaxis: { title: "CAPTCHA hits", automargin: true },
     xaxis: { title: "Vendor", automargin: true },
   };
@@ -289,7 +289,7 @@ function renderMethodShare(summary, stats) {
 
   const layout = {
     ...basePlotLayout,
-    margin: { t: 20, l: 20, r: 20, b: 20 },
+    margin: { t: 40, l: 20, r: 20, b: 20 },
     showlegend: false,
   };
 
@@ -328,7 +328,7 @@ function renderLatencyHist(stats) {
   const layout = {
     ...basePlotLayout,
     barmode: "overlay",
-    margin: { t: 30, l: 50, r: 10, b: 60 },
+    margin: { t: 40, l: 50, r: 10, b: 60 },
     xaxis: { title: "Latency (ms)", automargin: true },
     yaxis: { title: "Count", automargin: true },
     legend: { orientation: "h", x: 0, y: 1.1 },
@@ -375,7 +375,7 @@ function renderLatencySummary(summary) {
 
   const layout = {
     ...basePlotLayout,
-    margin: { t: 30, l: 60, r: 10, b: 60 },
+    margin: { t: 40, l: 60, r: 10, b: 60 },
     xaxis: { title: "Method", automargin: true },
     yaxis: { title: "Latency (ms)", automargin: true },
   };
@@ -429,7 +429,7 @@ function renderContentLenHist(stats) {
   const layout = {
     ...basePlotLayout,
     barmode: "overlay",
-    margin: { t: 30, l: 60, r: 10, b: 60 },
+    margin: { t: 40, l: 60, r: 10, b: 60 },
     xaxis: {
       title: "Content length (bytes)",
       automargin: true,
@@ -484,7 +484,7 @@ function renderContentByStatus(stats) {
 
   const layout = {
     ...basePlotLayout,
-    margin: { t: 30, l: 60, r: 10, b: 80 },
+    margin: { t: 40, l: 60, r: 10, b: 80 },
     xaxis: { title: "Status", automargin: true },
     yaxis: {
       title: "Median content length (bytes, log scale)",
@@ -523,7 +523,7 @@ function renderHttpStatusChart(stats) {
 
   const layout = {
     ...basePlotLayout,
-    margin: { t: 30, l: 50, r: 10, b: 60 },
+    margin: { t: 40, l: 50, r: 10, b: 60 },
     xaxis: { title: "HTTP status code", automargin: true },
     yaxis: { title: "Error count", automargin: true },
   };
@@ -554,7 +554,7 @@ function renderRetriesChart(stats) {
 
   const layout = {
     ...basePlotLayout,
-    margin: { t: 30, l: 50, r: 10, b: 60 },
+    margin: { t: 40, l: 50, r: 10, b: 60 },
     xaxis: { title: "Retries", automargin: true },
     yaxis: { title: "URL count", automargin: true },
   };
@@ -590,7 +590,7 @@ function renderErrorDomainsChart(stats) {
 
   const layout = {
     ...basePlotLayout,
-    margin: { t: 30, l: 120, r: 10, b: 40 },
+    margin: { t: 40, l: 120, r: 10, b: 40 },
     xaxis: { title: "HTTP error count", automargin: true },
     yaxis: { automargin: true },
   };
@@ -642,7 +642,7 @@ function renderStageMixChart(stats) {
   ];
 
   const layout = {
-    margin: { t: 30, l: 50, r: 10, b: 80 },
+    margin: { t: 40, l: 50, r: 10, b: 80 },
     xaxis: { title: "Method / stage", automargin: true },
     yaxis: { title: "URL count", automargin: true },
   };
