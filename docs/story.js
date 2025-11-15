@@ -115,10 +115,7 @@ function renderSnapshot(summary, stats) {
   const cardContent = document.getElementById("card-content");
 
   const blockerRate = captchaRate + robotsRate;
-  const otherErrorRate = Math.max(
-    0,
-    httpErrorRate + timeoutRate - blockerRate,
-  );
+  const otherErrorRate = httpErrorRate + timeoutRate;
 
   if (cardSuccess) {
     cardSuccess.textContent = `${formatPercent(successRate)} success`;
@@ -132,7 +129,7 @@ function renderSnapshot(summary, stats) {
   if (cardBlockers) {
     cardBlockers.textContent = `${formatPercent(robotsRate)} robots · ${formatPercent(
       captchaRate,
-    )} CAPTCHA`;
+    )} CAPTCHA · ${formatPercent(httpErrorRate)} HTTP errors`;
   }
 
   const p95Http = safeNumber(summary.p95_latency_httpx_ms);
@@ -167,11 +164,12 @@ function renderSnapshot(summary, stats) {
     const successPct = formatPercent(successRate);
     const robotsPct = formatPercent(robotsRate);
     const captchaPct = formatPercent(captchaRate);
+    const httpErrorPct = formatPercent(httpErrorRate);
     const httpShare = formatPercent(httpxShare, 0);
     const browserShare = formatPercent(playwrightShare, 0);
     tldrText.textContent =
       `Run over ${total.toLocaleString("en-US")} URLs: ` +
-      `${successPct} success, ${robotsPct} robots and ${captchaPct} CAPTCHA blocks. ` +
+      `${successPct} success, ${robotsPct} robots, ${captchaPct} CAPTCHA, and ${httpErrorPct} HTTP errors. ` +
       `HTTP handles ~${httpShare} of URLs; only ~${browserShare} need a browser, ` +
       `keeping latency and proxy cost under control.`;
   }
