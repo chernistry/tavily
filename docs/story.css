@@ -203,8 +203,7 @@ body {
 
 .chart {
   width: 100%;
-  min-height: 220px;
-  padding-top: 8px;
+  min-height: 360px;
 }
 
 code {
