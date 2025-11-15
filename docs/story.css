@@ -160,13 +160,13 @@ body {
 
 .stat-main {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-variant-numeric: tabular-nums;
 }
 
 .stat-sub {
   margin: 4px 0 0;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--secondary-color);
 }
 
