@@ -13,7 +13,6 @@ from __future__ import annotations
 import json
 import os
 from pathlib import Path
-from typing import Optional
 
 from tavily_scraper.config.constants import (
     DEFAULT_HTTPX_MAX_CONCURRENCY,
@@ -22,9 +21,6 @@ from tavily_scraper.config.constants import (
     DEFAULT_SHARD_SIZE,
 )
 from tavily_scraper.core.models import ProxyConfig, RunConfig
-
-
-
 
 # ==== ENVIRONMENT VARIABLE HELPERS ==== #
 
@@ -137,7 +133,7 @@ def load_run_config() -> RunConfig:
 
     # --► PROXY CONFIGURATION
     proxy_config_path_env = os.getenv("PROXY_CONFIG_PATH")
-    proxy_config_path: Optional[Path] = (
+    proxy_config_path: Path | None = (
         Path(proxy_config_path_env).resolve() if proxy_config_path_env else None
     )
 

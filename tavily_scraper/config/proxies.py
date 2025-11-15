@@ -14,9 +14,6 @@ from dataclasses import dataclass
 
 from tavily_scraper.core.models import ProxyConfig
 
-
-
-
 # ==== PROXY MANAGER ==== #
 
 @dataclass

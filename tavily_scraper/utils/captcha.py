@@ -10,10 +10,7 @@ This module provides:
 
 from __future__ import annotations
 
-from typing import Literal, Optional, TypedDict
-
-
-
+from typing import Literal, TypedDict
 
 # ==== TYPE DEFINITIONS ==== #
 
@@ -51,7 +48,7 @@ class CaptchaDetection(TypedDict):
     """
 
     present: bool
-    vendor: Optional[CaptchaVendor]
+    vendor: CaptchaVendor | None
     confidence: float
     reason: str
 
@@ -64,7 +61,7 @@ def detect_captcha_http(
     status_code: int,
     url: str,
     headers: dict[str, str],
-    body: Optional[str],
+    body: str | None,
 ) -> CaptchaDetection:
     """
     Detect CAPTCHA presence from HTTP response.
@@ -97,7 +94,7 @@ def detect_captcha_http(
 
     # --► NORMALIZE BODY FOR PATTERN MATCHING
     body_lc = body[:200_000].lower()
-    vendor: Optional[CaptchaVendor] = None
+    vendor: CaptchaVendor | None = None
     confidence = 0.0
     reasons: list[str] = []
 
@@ -169,7 +166,7 @@ def detect_captcha_http(
 
 # ==== LEGACY COMPATIBILITY ==== #
 
-def is_captcha_page(content: Optional[str]) -> bool:
+def is_captcha_page(content: str | None) -> bool:
     """
     Simple CAPTCHA detection for legacy compatibility.
 

@@ -13,16 +13,12 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from statistics import mean
-from typing import Optional
 
 from tavily_scraper.core.models import RunSummary, UrlStats
 
-
-
-
 # ==== STATISTICAL UTILITIES ==== #
 
-def percentile(values: list[int], p: float) -> Optional[int]:
+def percentile(values: list[int], p: float) -> int | None:
     """
     Calculate percentile of integer values.
 

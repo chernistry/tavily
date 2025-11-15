@@ -16,10 +16,9 @@ import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from time import perf_counter
-from typing import Optional
 from urllib.parse import urlparse
 
-from playwright.async_api import Browser, Page, Route, Request, async_playwright
+from playwright.async_api import Browser, Page, Request, Route, async_playwright
 
 from tavily_scraper.config.constants import DEFAULT_MAX_CONTENT_BYTES
 from tavily_scraper.config.proxies import ProxyManager
@@ -32,7 +31,6 @@ from tavily_scraper.core.models import (
 )
 from tavily_scraper.utils.captcha import detect_captcha_http
 from tavily_scraper.utils.logging import get_logger
-
 
 logger = get_logger(__name__)
 
@@ -55,7 +53,7 @@ MAX_CONTENT_BYTES: int = DEFAULT_MAX_CONTENT_BYTES
 @asynccontextmanager
 async def browser_lifecycle(
     run_config: RunConfig,
-    proxy_manager: Optional[ProxyManager],
+    proxy_manager: ProxyManager | None,
 ) -> AsyncIterator[Browser]:
     """
     Manage Playwright browser instance lifecycle.
@@ -212,7 +210,7 @@ async def fetch_one(
     backoff_base = 1.0
 
     while True:
-        page: Optional[Page] = None
+        page: Page | None = None
 
         try:
             page = await create_page_with_blocking(browser)

@@ -15,7 +15,6 @@ from __future__ import annotations
 import asyncio
 import random
 from time import perf_counter
-from typing import Optional
 from urllib.parse import urlparse
 
 import httpx
@@ -29,9 +28,6 @@ from tavily_scraper.core.models import (
     UrlJob,
     make_initial_fetch_result,
 )
-
-
-
 
 # ==== USER AGENT ROTATION POOL ==== #
 
@@ -105,7 +101,7 @@ def build_headers() -> dict[str, str]:
 
 def make_http_client(
     run_config: RunConfig,
-    proxy_manager: Optional[ProxyManager],
+    proxy_manager: ProxyManager | None,
 ) -> httpx.AsyncClient:
     """
     Create configured httpx AsyncClient instance.

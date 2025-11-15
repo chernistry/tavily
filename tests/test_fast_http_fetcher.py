@@ -3,6 +3,7 @@
 import pytest
 from pytest_httpx import HTTPXMock
 
+from tavily_scraper.config.constants import DEFAULT_MAX_CONTENT_BYTES
 from tavily_scraper.core.models import (
     RunConfig,
     RunnerContext,
@@ -16,7 +17,6 @@ from tavily_scraper.pipelines.fast_http_fetcher import (
     looks_incomplete_http,
     make_http_client,
 )
-from tavily_scraper.config.constants import DEFAULT_MAX_CONTENT_BYTES
 
 
 def test_make_http_client() -> None:

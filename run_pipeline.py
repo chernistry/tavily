@@ -11,16 +11,11 @@ import asyncio
 import random
 import sys
 from pathlib import Path
-from typing import Optional
-
 
 # ==== PROJECT IMPORTS ==== #
 from tavily_scraper.config.env import load_run_config
 from tavily_scraper.pipelines.batch_runner import run_batch
 from tavily_scraper.utils.io import load_urls_from_csv
-
-
-
 
 # ==== CORE PIPELINE ORCHESTRATION ==== #
 
@@ -61,8 +56,8 @@ async def main() -> None:
         print("Shuffled URLs randomly")
 
     # --► MODE CONFIGURATION
-    max_urls: Optional[int]
-    target_success: Optional[int]
+    max_urls: int | None
+    target_success: int | None
 
     if target_mode:
         print(f"Mode: Process until {target} SUCCESSFUL URLs")

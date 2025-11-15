@@ -20,7 +20,6 @@ import msgspec
 
 from tavily_scraper.config.constants import Method, Stage, Status
 
-
 if TYPE_CHECKING:
     import httpx
 

@@ -14,14 +14,11 @@ from __future__ import annotations
 import csv
 import json
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from yarl import URL
 
 from tavily_scraper.core.models import UrlJob, UrlStats, UrlStr
-
-
-
 
 # ==== URL LOADING ==== #
 
@@ -301,7 +298,7 @@ def save_checkpoint(checkpoint: dict[str, Any], path: Path) -> None:
 
 
 
-def load_checkpoint(path: Path) -> Optional[dict[str, Any]]:
+def load_checkpoint(path: Path) -> dict[str, Any] | None:
     """
     Load checkpoint from JSON file.
 

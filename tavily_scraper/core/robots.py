@@ -12,7 +12,6 @@ This module implements:
 from __future__ import annotations
 
 import asyncio
-from typing import Optional
 from urllib.parse import urlparse
 from urllib.robotparser import RobotFileParser
 
@@ -21,9 +20,6 @@ import httpx
 from tavily_scraper.config.proxies import ProxyManager
 from tavily_scraper.core.models import ProxyConfig, RunConfig
 from tavily_scraper.utils.logging import get_logger
-
-
-
 
 # ==== ROBOTS.TXT CLIENT ==== #
 
@@ -75,7 +71,7 @@ class RobotsClient:
     async def can_fetch(
         self,
         url: str,
-        user_agent: Optional[str] = None,
+        user_agent: str | None = None,
     ) -> bool:
         """
         Check if URL can be fetched according to robots.txt.
@@ -181,7 +177,7 @@ class RobotsClient:
 
 async def make_robots_client(
     run_config: RunConfig,
-    proxy_config: Optional[ProxyConfig],
+    proxy_config: ProxyConfig | None,
 ) -> RobotsClient:
     """
     Create RobotsClient with optional proxy configuration.

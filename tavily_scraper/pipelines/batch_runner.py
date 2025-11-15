@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-from typing import Optional
 
 from playwright.async_api import Browser
 
@@ -38,7 +37,6 @@ from tavily_scraper.utils.io import (
 from tavily_scraper.utils.logging import get_logger
 from tavily_scraper.utils.metrics import compute_run_summary
 
-
 logger = get_logger(__name__)
 
 
@@ -49,9 +47,9 @@ logger = get_logger(__name__)
 async def _process_jobs(
     jobs: list[UrlJob],
     ctx: RunnerContext,
-    browser: Optional[Browser],
+    browser: Browser | None,
     config: RunConfig,
-    target_success: Optional[int],
+    target_success: int | None,
 ) -> list[FetchResult]:
     """
     Process URL jobs with concurrency control and optional early termination.
@@ -82,7 +80,7 @@ async def _process_jobs(
     processed_count = 0
     stop_processing = False
 
-    async def process_job(job: UrlJob) -> Optional[FetchResult]:
+    async def process_job(job: UrlJob) -> FetchResult | None:
         """
         Process a single URL job with early termination support.
 
@@ -143,8 +141,8 @@ async def _process_jobs(
 async def run_batch(
     urls: list[str],
     config: RunConfig,
-    max_urls: Optional[int] = None,
-    target_success: Optional[int] = None,
+    max_urls: int | None = None,
+    target_success: int | None = None,
     use_browser: bool = False,
 ) -> RunSummary:
     """
@@ -173,7 +171,7 @@ async def run_batch(
         If neither is specified, all URLs will be processed.
     """
     # --► PROXY CONFIGURATION
-    proxy_manager: Optional[ProxyManager] = None
+    proxy_manager: ProxyManager | None = None
     proxy_config = None
 
     if config.proxy_config_path and config.proxy_config_path.exists():
@@ -247,10 +245,10 @@ async def run_batch(
 # ==== HIGH-LEVEL ENTRY POINTS ==== #
 
 async def run_all(
-    config: Optional[RunConfig] = None,
+    config: RunConfig | None = None,
     *,
-    max_urls: Optional[int] = None,
-    target_success: Optional[int] = None,
+    max_urls: int | None = None,
+    target_success: int | None = None,
     use_browser: bool = True,
 ) -> RunSummary:
     """

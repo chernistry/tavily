@@ -10,13 +10,12 @@ This module implements the hybrid scraping strategy by:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 from urllib.parse import urlsplit, urlunsplit
 
 from tavily_scraper.core.models import FetchResult, RunnerContext, UrlJob
 from tavily_scraper.pipelines.fast_http_fetcher import fetch_one, looks_incomplete_http
 from tavily_scraper.utils.logging import get_logger
-
 
 if TYPE_CHECKING:
     from playwright.async_api import Browser
@@ -97,7 +96,7 @@ def needs_browser(result: FetchResult) -> bool:
 async def route_and_fetch(
     job: UrlJob,
     ctx: RunnerContext,
-    browser: Optional[Browser] = None,
+    browser: Browser | None = None,
 ) -> FetchResult:
     """
     Route URL through HTTP-first strategy with optional browser fallback.

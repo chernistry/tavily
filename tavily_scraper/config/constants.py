@@ -11,9 +11,6 @@ from __future__ import annotations
 
 from typing import Literal
 
-
-
-
 # ==== TYPE DEFINITIONS ==== #
 
 Method = Literal["httpx", "playwright"]

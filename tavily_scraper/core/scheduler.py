@@ -15,10 +15,6 @@ import asyncio
 import random
 from collections import defaultdict
 from collections.abc import Mapping
-from typing import Optional
-
-
-
 
 # ==== DOMAIN-AWARE SCHEDULER ==== #
 
@@ -47,8 +43,8 @@ class DomainScheduler:
     def __init__(
         self,
         global_limit: int,
-        per_domain_limits: Optional[Mapping[str, int]] = None,
-        jitter_range: Optional[tuple[float, float]] = None,
+        per_domain_limits: Mapping[str, int] | None = None,
+        jitter_range: tuple[float, float] | None = None,
         max_errors_for_browser: int = 5,
         max_captchas_for_browser: int = 5,
     ) -> None:
