@@ -79,6 +79,7 @@ async def _process_jobs(
     success_count = 0
     processed_count = 0
     stop_processing = False
+    target_reached_logged = False
 
     async def process_job(job: UrlJob) -> FetchResult | None:
         """
@@ -90,7 +91,7 @@ async def _process_jobs(
         Returns:
             FetchResult if processed, None if skipped due to early termination
         """
-        nonlocal success_count, processed_count, stop_processing
+        nonlocal success_count, processed_count, stop_processing, target_reached_logged
 
         if stop_processing:
             return None
@@ -105,13 +106,16 @@ async def _process_jobs(
             if result.get("status") == "success":
                 success_count += 1
 
+                # Early-stop condition: log once when we first hit the target.
                 if target_success and success_count >= target_success:
                     stop_processing = True
-                    logger.info(
-                        "Reached target of %s successful URLs",
-                        target_success,
-                    )
-                else:
+                    if not target_reached_logged:
+                        target_reached_logged = True
+                        logger.info(
+                            "Reached target of %s successful URLs",
+                            target_success,
+                        )
+                elif not target_reached_logged:
                     logger.info(
                         "Success %s/%s (processed %s)",
                         success_count,
