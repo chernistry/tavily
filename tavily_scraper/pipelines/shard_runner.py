@@ -8,6 +8,8 @@ from pathlib import Path
 
 from playwright.async_api import Browser
 
+from typing import Any, cast
+
 from tavily_scraper.core.models import (
     FetchResult,
     RunnerContext,
@@ -54,7 +56,7 @@ async def run_shard(
         "last_updated_at": datetime.now(UTC).isoformat(),
         "status": "in_progress",
     }
-    save_checkpoint(checkpoint, checkpoint_path)
+    save_checkpoint(cast(dict[str, Any], checkpoint), checkpoint_path)
 
     semaphore = asyncio.Semaphore(ctx.run_config.httpx_max_concurrency)
     results: list[UrlStats] = []
@@ -68,13 +70,13 @@ async def run_shard(
 
             checkpoint["urls_done"] += 1
             checkpoint["last_updated_at"] = datetime.now(UTC).isoformat()
-            save_checkpoint(checkpoint, checkpoint_path)
+            save_checkpoint(cast(dict[str, Any], checkpoint), checkpoint_path)
 
     await asyncio.gather(*(_process_job(job) for job in jobs))
 
     checkpoint["status"] = "completed"
     checkpoint["last_updated_at"] = datetime.now(UTC).isoformat()
-    save_checkpoint(checkpoint, checkpoint_path)
+    save_checkpoint(cast(dict[str, Any], checkpoint), checkpoint_path)
 
     return results
 
