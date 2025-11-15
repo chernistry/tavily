@@ -1,4 +1,4 @@
-Read /Users/sasha/IdeaProjects/personal_projects/tavily/.sdd/CODING_RULES.md first
+Read .sdd/CODING_RULES.md first
 
 # P0_05 – Proxy manager and fast HTTP fetcher
 
