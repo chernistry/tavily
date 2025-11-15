@@ -1,29 +1,86 @@
-"""Metrics computation and aggregation."""
+"""
+Metrics computation and aggregation for scraping runs.
+
+This module provides:
+- Percentile calculation for latency analysis
+- Run summary computation from URL statistics
+- Success/error rate calculations
+- Method distribution analysis (HTTP vs browser)
+- Content size statistics
+"""
 
 from __future__ import annotations
 
 from collections.abc import Iterable
 from statistics import mean
+from typing import Optional
 
 from tavily_scraper.core.models import RunSummary, UrlStats
 
 
-def percentile(values: list[int], p: float) -> int | None:
-    """Calculate percentile of integer values."""
+
+
+# ==== STATISTICAL UTILITIES ==== #
+
+def percentile(values: list[int], p: float) -> Optional[int]:
+    """
+    Calculate percentile of integer values.
+
+    Uses nearest-rank method for percentile calculation.
+
+    Args:
+        values: List of integer values
+        p: Percentile to calculate (0-100)
+
+    Returns:
+        Percentile value or None if list is empty
+
+    Example:
+        percentile([1, 2, 3, 4, 5], 50) -> 3  # median
+        percentile([1, 2, 3, 4, 5], 95) -> 5  # P95
+    """
     if not values:
         return None
+
     values_sorted = sorted(values)
     k = max(
-        0, min(len(values_sorted) - 1, int(round((p / 100.0) * (len(values_sorted) - 1))))
+        0,
+        min(
+            len(values_sorted) - 1,
+            int(round((p / 100.0) * (len(values_sorted) - 1))),
+        ),
     )
+
     return values_sorted[k]
 
 
+
+
+# ==== RUN SUMMARY COMPUTATION ==== #
+
 def compute_run_summary(stats: Iterable[UrlStats]) -> RunSummary:
-    """Compute run summary from URL stats."""
+    """
+    Compute aggregate run summary from URL statistics.
+
+    This function analyzes all URL statistics to produce:
+    - Success/error/timeout/CAPTCHA/robots rates
+    - HTTP vs browser method distribution
+    - Latency percentiles per method
+    - Average content sizes per method
+
+    Args:
+        stats: Iterable of UrlStats from scraping run
+
+    Returns:
+        RunSummary with aggregate metrics
+
+    Note:
+        Returns zero-filled summary if no stats provided.
+    """
     rows = list(stats)
     total = len(rows)
 
+    # --► HANDLE EMPTY INPUT
     if total == 0:
         return RunSummary(
             total_urls=0,
@@ -43,20 +100,22 @@ def compute_run_summary(stats: Iterable[UrlStats]) -> RunSummary:
             avg_content_len_playwright=None,
         )
 
-    # Count by status
+    # --► COUNT BY STATUS
     success_count = sum(1 for r in rows if r["status"] == "success")
     http_error_count = sum(1 for r in rows if r["status"] == "http_error")
     timeout_count = sum(1 for r in rows if r["status"] == "timeout")
     captcha_count = sum(1 for r in rows if r["status"] == "captcha_detected")
     robots_count = sum(1 for r in rows if r["status"] == "robots_blocked")
 
-    # Count by method
+    # --► COUNT BY METHOD
     httpx_count = sum(1 for r in rows if r["method"] == "httpx")
     playwright_count = sum(1 for r in rows if r["method"] == "playwright")
 
-    # Latencies by method
+    # --► COLLECT LATENCIES BY METHOD
     httpx_latencies = [
-        r["latency_ms"] for r in rows if r["method"] == "httpx" and r["latency_ms"]
+        r["latency_ms"]
+        for r in rows
+        if r["method"] == "httpx" and r["latency_ms"]
     ]
     playwright_latencies = [
         r["latency_ms"]
@@ -64,9 +123,11 @@ def compute_run_summary(stats: Iterable[UrlStats]) -> RunSummary:
         if r["method"] == "playwright" and r["latency_ms"]
     ]
 
-    # Content lengths by method
+    # --► COLLECT CONTENT LENGTHS BY METHOD
     httpx_content_lens = [
-        r["content_len"] for r in rows if r["method"] == "httpx" and r["content_len"]
+        r["content_len"]
+        for r in rows
+        if r["method"] == "httpx" and r["content_len"]
     ]
     playwright_content_lens = [
         r["content_len"]
@@ -74,6 +135,7 @@ def compute_run_summary(stats: Iterable[UrlStats]) -> RunSummary:
         if r["method"] == "playwright" and r["content_len"]
     ]
 
+    # --► CONSTRUCT SUMMARY
     return RunSummary(
         total_urls=total,
         stats_rows=total,
@@ -88,10 +150,10 @@ def compute_run_summary(stats: Iterable[UrlStats]) -> RunSummary:
         p95_latency_httpx_ms=percentile(httpx_latencies, 95),
         p50_latency_playwright_ms=percentile(playwright_latencies, 50),
         p95_latency_playwright_ms=percentile(playwright_latencies, 95),
-        avg_content_len_httpx=int(mean(httpx_content_lens))
-        if httpx_content_lens
-        else None,
-        avg_content_len_playwright=int(mean(playwright_content_lens))
-        if playwright_content_lens
-        else None,
+        avg_content_len_httpx=(
+            int(mean(httpx_content_lens)) if httpx_content_lens else None
+        ),
+        avg_content_len_playwright=(
+            int(mean(playwright_content_lens)) if playwright_content_lens else None
+        ),
     )
