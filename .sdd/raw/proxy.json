@@ -1,0 +1,12 @@
+{
+    "proxy": {
+        "username": "mpuJLYQclx_HomeAssignment",
+        "password": "ScrapingAssignment123",
+        "hostname": "network.joinmassive.com:65535",
+        "port": {
+            "http": 65534,
+            "https": 65535,
+            "socks5": 65533
+        }
+    }
+}

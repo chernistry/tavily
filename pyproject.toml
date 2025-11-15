@@ -1,0 +1,33 @@
+[project]
+name = "tavily-scraper"
+version = "0.1.0"
+description = "Hybrid HTTP + Playwright scraper for Tavily Web Research assignment"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.black]
+line-length = 88
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+fix = true
+unsafe-fixes = false
+src = ["tavily_scraper", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "C90"]
+ignore = ["E501"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.isort]
+known-first-party = ["tavily_scraper"]
+combine-as-imports = true
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["tavily_scraper"]

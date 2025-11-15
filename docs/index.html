@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Tavily Web Scraper — Assignment One Pager</title>
+
+<style>
+  :root {
+    --text: #1a1a1a;
+    --text-muted: #525252;
+    --accent: #1e40af;
+    --border: #d4d4d4;
+    --bg-subtle: #f5f5f5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font: 10pt/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    background: white;
+    padding: 0;
+  }
+
+  .container {
+    max-width: 210mm;
+    margin: 0 auto;
+    padding: 10mm 12mm;
+  }
+
+  header {
+    border-bottom: 2pt solid var(--accent);
+    padding-bottom: 6pt;
+    margin-bottom: 8pt;
+    position: relative;
+  }
+
+  .github-link {
+    position: absolute;
+    top: 0;
+    right: 0;
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 4pt;
+    font-size: 9pt;
+    font-weight: 600;
+    padding: 4pt 8pt;
+    border-radius: 4pt;
+    transition: background 0.2s;
+  }
+
+  .github-link:hover {
+    background: var(--bg-subtle);
+  }
+
+  .github-link svg {
+    width: 16pt;
+    height: 16pt;
+  }
+
+  h1 {
+    font-size: 18pt;
+    font-weight: 700;
+    margin-bottom: 3pt;
+    letter-spacing: -0.02em;
+  }
+
+  .tagline {
+    font-size: 10pt;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 5pt;
+  }
+
+  .header-skills {
+    display: flex;
+    gap: 5pt;
+    flex-wrap: wrap;
+  }
+
+  h2 {
+    font-size: 11pt;
+    font-weight: 700;
+    margin: 10pt 0 5pt;
+    padding-bottom: 2pt;
+    border-bottom: 1pt solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  h3 {
+    font-size: 10pt;
+    font-weight: 700;
+    margin: 0 0 2pt;
+    line-height: 1.3;
+  }
+
+  p {
+    margin-bottom: 5pt;
+    line-height: 1.4;
+    text-align: justify;
+  }
+
+  ul {
+    margin: 4pt 0 6pt 16pt;
+    line-height: 1.4;
+  }
+
+  li { margin-bottom: 2pt; }
+
+  .pill {
+    display: inline-block;
+    padding: 3pt 7pt;
+    border-radius: 999px;
+    background: var(--bg-subtle);
+    border: 1pt solid var(--border);
+    font-size: 8.5pt;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-right: 4pt;
+  }
+
+  .tldr-box {
+    margin-top: 6pt;
+    padding: 6pt 8pt;
+    border-left: 3pt solid var(--accent);
+    background: #f2f6ff;
+    font-size: 9.5pt;
+  }
+
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6pt;
+    margin: 6pt 0 4pt;
+  }
+
+  .metric-card {
+    background: var(--bg-subtle);
+    border: 1pt solid var(--border);
+    border-radius: 4pt;
+    padding: 4pt 6pt;
+  }
+
+  .metric-label {
+    font-size: 8pt;
+    color: var(--text-muted);
+    margin-bottom: 1pt;
+  }
+
+  .metric-value {
+    font-size: 11pt;
+    font-weight: 700;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8pt;
+    margin: 6pt 0;
+  }
+
+  .project-card {
+    background: var(--bg-subtle);
+    border-left: 3pt solid var(--accent);
+    padding: 6pt 8pt;
+    margin: 5pt 0;
+    page-break-inside: avoid;
+  }
+
+  .project-meta {
+    font-size: 8.5pt;
+    color: var(--text-muted);
+    margin: 1pt 0 3pt;
+    font-weight: 600;
+  }
+
+  .tech-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3pt;
+    margin-top: 4pt;
+  }
+
+  .tech-tag {
+    background: var(--text);
+    color: white;
+    padding: 1pt 5pt;
+    border-radius: 2pt;
+    font-size: 7.5pt;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .skills-tag {
+    background: var(--bg-subtle);
+    border: 1pt solid var(--border);
+    color: var(--text);
+    padding: 3pt 8pt;
+    border-radius: 3pt;
+    font-size: 9pt;
+    font-weight: 600;
+  }
+
+  .contact {
+    margin-top: 8pt;
+    padding-top: 6pt;
+    border-top: 1pt solid var(--border);
+    display: flex;
+    gap: 10pt;
+    flex-wrap: wrap;
+    font-size: 9pt;
+  }
+
+  .contact a {
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  a:hover { text-decoration: underline; }
+
+  section { margin-bottom: 5pt; }
+
+  @media print {
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    body {
+      width: 210mm;
+      height: 297mm;
+    }
+
+    .container {
+      padding: 10mm 12mm;
+    }
+
+    a { color: var(--text); }
+
+    .project-card {
+      break-inside: avoid;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <a href="https://github.com/chernistry/tavily" target="_blank" rel="noopener noreferrer" class="github-link">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4"/>
+        <path d="M9 18c-4.51 2-5-2-7-2"/>
+      </svg>
+      GitHub
+    </a>
+    <h1>Tavily Web Scraper</h1>
+    <!-- <p class="tagline">Hybrid HTTP + Playwright scraping · latency / accuracy / cost</p> -->
+
+    <div class="tldr-box">
+      <strong>TL;DR:</strong>
+      HTTP‑first scraper with Playwright fallback, proxies, robots & CAPTCHA detection.
+      
+    </div>
+  </header>
+
+  <section>
+    <h2>Run Snapshot</h2>
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-label">Total URLs</div>
+        <div class="metric-value">1,000</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Success rate</div>
+        <div class="metric-value">24.1%</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">HTTP-only share</div>
+        <div class="metric-value">93.8%</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Browser share</div>
+        <div class="metric-value">6.2%</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">P95 HTTP latency</div>
+        <div class="metric-value">5.0s</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">P95 browser latency</div>
+        <div class="metric-value">10.0s</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">CAPTCHA rate</div>
+        <div class="metric-value">1.5%</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Robots blocked</div>
+        <div class="metric-value">39.7%</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Design</h2>
+    <ul>
+      <li><strong>HTTP-first:</strong> async <code>httpx</code> + Selectolax on all URLs, with rotated headers and proxies.</li>
+      <li><strong>Fallback:</strong> <code>needs_browser</code> sends only incomplete/blocked/JS pages to Playwright.</li>
+      <li><strong>Scheduling & compliance:</strong> <code>DomainScheduler</code> caps domain load; <code>RobotsClient</code> enforces robots.txt; CAPTCHAs detected & bucketed.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Approach & Methodology</h2>
+    <p style="margin-bottom: 4pt;">
+      <strong>Spec-Driven Development (SDD)</strong> — 
+      <a href="https://github.com/chernistry/SDDRush" target="_blank" rel="noopener noreferrer">SDDRush framework</a>
+    </p>
+    <p>
+      <strong>TL;DR:</strong> I write specs + guardrails → AI plans → agent executes tickets → I review/ship.<br>
+      All specs, tickets & prompts for this project: 
+      <a href="https://github.com/chernistry/tavily/tree/main/.sdd/backlog" target="_blank" rel="noopener noreferrer">tavily/.sdd/</a>
+    </p>
+  </section>
+
+  <section>
+    <h2>Key Architecture Decisions</h2>
+    <ul>
+      <li><strong>ADR-001 Hybrid Strategy:</strong> Two-stage pipeline (HTTP → Browser) balances speed vs accuracy.</li>
+      <li><strong>ADR-002 Domain Scheduling:</strong> Per-domain concurrency caps + adaptive backoff prevent blocks.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Metrics & Insights</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10pt; margin: 8pt 0;">
+      <div id="statusChart"></div>
+      <div id="latencyChart"></div>
+    </div>
+
+  </section>
+
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <script>
+    // Status distribution bar chart
+    const statusData = [{
+      x: ['Success', 'HTTP Error', 'Robots Blocked', 'CAPTCHA', 'Timeout'],
+      y: [241, 331, 397, 15, 10],
+      type: 'bar',
+      marker: {
+        color: ['#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#6b7280']
+      }
+    }];
+    const statusLayout = {
+      title: { text: 'Status Distribution (1,000 URLs)', font: { size: 10 } },
+      height: 200,
+      margin: { t: 30, b: 50, l: 40, r: 10 },
+      yaxis: { title: 'Count', titlefont: { size: 9 } },
+      xaxis: { tickangle: -40, tickfont: { size: 8 } }
+    };
+    Plotly.newPlot('statusChart', statusData, statusLayout, {displayModeBar: false});
+
+    // Latency comparison bar chart
+    const latencyData = [
+      {
+        x: ['httpx', 'playwright'],
+        y: [1723, 5502],
+        name: 'P50',
+        type: 'bar',
+        marker: { color: '#3b82f6' }
+      },
+      {
+        x: ['httpx', 'playwright'],
+        y: [5014, 10002],
+        name: 'P95',
+        type: 'bar',
+        marker: { color: '#1e40af' }
+      }
+    ];
+    const latencyLayout = {
+      title: { text: 'Latency by Method (ms)', font: { size: 10 } },
+      height: 200,
+      margin: { t: 30, b: 30, l: 40, r: 10 },
+      barmode: 'group',
+      yaxis: { title: 'Latency (ms)', titlefont: { size: 9 } },
+      xaxis: { tickfont: { size: 8 } },
+      legend: { orientation: 'h', y: -0.25, font: { size: 8 } }
+    };
+    Plotly.newPlot('latencyChart', latencyData, latencyLayout, {displayModeBar: false});
+
+
+
+
+  </script>
+
+  <section>
+    <h2>Limits & Next Steps</h2>
+    <ul>
+      <li><strong>Hard domains:</strong> CAPTCHA/robots-heavy sites recorded, not bypassed.</li>
+      <li><strong>Heuristics:</strong> <code>needs_browser</code> is intentionally simple; per‑domain or learned policies are natural future work.</li>
+      <li><strong>Scale & cost:</strong> single-node sharded; extensible to distributed runners + proxy/cost dashboards.</li>
+    </ul>
+  </section>
+
+  <div class="contact">
+    <a href="mailto:alex@hireex.ai">alex@hireex.ai</a>
+    <span class="separator">•</span>
+    <a href="tel:+972505357563">+972 50 535 7563</a>
+    <span class="separator">•</span>
+    <a href="https://www.linkedin.com/in/sasha-chernysh/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+    <span class="separator">•</span>
+    <a href="https://github.com/chernistry" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </div>
+</div>
+
+</body>
+</html>
