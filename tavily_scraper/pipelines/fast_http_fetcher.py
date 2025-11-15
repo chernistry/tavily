@@ -28,6 +28,7 @@ from tavily_scraper.core.models import (
     UrlJob,
     make_initial_fetch_result,
 )
+from tavily_scraper.utils.parsing import extract_visible_text_lower
 
 # ==== USER AGENT ROTATION POOL ==== #
 
@@ -333,7 +334,8 @@ def looks_incomplete_http(result: FetchResult) -> bool:
         return True
 
     html = result.get("content") or ""
-    lower = html.lower()
+    # Use Selectolax to inspect visible text only (script/style excluded).
+    lower = extract_visible_text_lower(html) if html else ""
 
     if "enable javascript" in lower or "please turn on javascript" in lower:
         return True
