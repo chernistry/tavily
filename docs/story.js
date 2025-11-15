@@ -431,15 +431,22 @@ function renderContentLenHist(stats) {
     barmode: "overlay",
     margin: { t: 30, l: 60, r: 10, b: 60 },
     xaxis: {
-      title: "Content length (bytes, log scale)",
-      type: "log",
+      title: "Content length (bytes)",
       automargin: true,
     },
     yaxis: { title: "Count", automargin: true },
     legend: { orientation: "h", x: 0, y: 1.1 },
   };
 
-  Plotly.newPlot("chart-content-len", data, layout, { displayModeBar: false });
+  const config = { displayModeBar: false };
+  
+  // Add nbins to control histogram buckets
+  data.forEach(trace => {
+    trace.nbinsx = 30;
+  });
+
+  console.log('Calling Plotly.newPlot with', data.length, 'traces');
+  Plotly.newPlot("chart-content-len", data, layout, config);
 }
 
 function renderContentByStatus(stats) {
