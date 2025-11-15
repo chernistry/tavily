@@ -391,6 +391,7 @@ function renderContentLenHist(stats) {
       r.content_len != null &&
       r.content_len > 0,
   );
+  console.log('renderContentLenHist: filtered count =', filtered.length);
   if (!filtered.length) return;
 
   const httpxValues = filtered
@@ -399,6 +400,8 @@ function renderContentLenHist(stats) {
   const playwrightValues = filtered
     .filter((r) => r.method === "playwright")
     .map((r) => r.content_len);
+
+  console.log('httpxValues:', httpxValues.length, 'playwrightValues:', playwrightValues.length);
 
   const data = [];
   if (httpxValues.length) {
@@ -420,6 +423,7 @@ function renderContentLenHist(stats) {
     });
   }
 
+  console.log('data traces:', data.length);
   if (!data.length) return;
 
   const layout = {
