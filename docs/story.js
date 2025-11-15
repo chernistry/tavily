@@ -394,18 +394,38 @@ function renderContentLenHist(stats) {
   );
   if (!filtered.length) return;
 
-  const data = [
-    {
+  const httpxValues = filtered
+    .filter((r) => r.method === "httpx")
+    .map((r) => r.content_len);
+  const playwrightValues = filtered
+    .filter((r) => r.method === "playwright")
+    .map((r) => r.content_len);
+
+  const data = [];
+  if (httpxValues.length) {
+    data.push({
       type: "histogram",
-      x: filtered.map((r) => r.content_len),
+      x: httpxValues,
+      name: "HTTPX",
       marker: { color: plotColors.primary },
-      opacity: 0.8,
-      name: "Content length",
-    },
-  ];
+      opacity: 0.75,
+    });
+  }
+  if (playwrightValues.length) {
+    data.push({
+      type: "histogram",
+      x: playwrightValues,
+      name: "Playwright",
+      marker: { color: plotColors.secondary },
+      opacity: 0.75,
+    });
+  }
+
+  if (!data.length) return;
 
   const layout = {
     ...basePlotLayout,
+    barmode: "overlay",
     margin: { t: 30, l: 60, r: 10, b: 60 },
     xaxis: {
       title: "Content length (bytes, log scale)",
@@ -413,7 +433,7 @@ function renderContentLenHist(stats) {
       automargin: true,
     },
     yaxis: { title: "Count", automargin: true },
-    showlegend: false,
+    legend: { orientation: "h", x: 0, y: 1.1 },
   };
 
   Plotly.newPlot("chart-content-len", data, layout, { displayModeBar: false });
@@ -623,8 +643,8 @@ function renderStageMixChart(stats) {
 async function main() {
   try {
     const [summary, stats] = await Promise.all([
-      fetchJson("../data/run_summary.json"),
-      fetchJsonl("../data/stats.jsonl"),
+      fetchJson("data/run_summary.json"),
+      fetchJsonl("data/stats.jsonl"),
     ]);
 
     renderSnapshot(summary, stats);
