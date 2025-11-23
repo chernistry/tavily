@@ -31,9 +31,9 @@ case "$CMD" in
     URLS="${1:-.sdd/raw/failed_urls.csv}"
     echo "⚖️  Comparing browser stealth on failed URLs..."
     echo "   Without stealth..."
-    python run_pipeline.py --urls "$URLS" --stats-suffix "_browser_normal"
+    python run_pipeline.py --urls "$URLS" --browser --stats-suffix "_browser_normal"
     echo "   With stealth..."
-    python run_pipeline.py --urls "$URLS" --stealth --stats-suffix "_browser_stealth"
+    python run_pipeline.py --urls "$URLS" --browser --stealth --stats-suffix "_browser_stealth"
     echo ""
     echo "📊 Results:"
     python - <<'PY'
