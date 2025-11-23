@@ -172,7 +172,7 @@ async def create_page_with_blocking(
         if state:
             context_kwargs["storage_state"] = state
 
-    context = await browser.new_context(**context_kwargs)  # type: ignore[arg-type]
+    context = await browser.new_context(**context_kwargs)
 
     async def route_handler(route: Route, request: Request) -> None:
         """

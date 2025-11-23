@@ -258,6 +258,7 @@ class RunSummary(TypedDict):
     total_urls: int
     stats_rows: int
     success_rate: float
+    stealth_stats: Dict[str, Any] = None  # New field for stealth metrics
     http_error_rate: float
     timeout_rate: float
     captcha_rate: float

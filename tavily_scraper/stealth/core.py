@@ -30,10 +30,13 @@ async def apply_core_stealth(page: Page, config: StealthConfig) -> None:
     # --- navigator.webdriver and basic automation flags ---
     if config.spoof_webdriver:
         await page.add_init_script(load_asset_text("core_automation.js"))
+        # logger.debug("Injected core_automation.js")
 
     # --- navigator languages, plugins, and basic hardware hints ---
     if config.spoof_user_agent:
         await page.add_init_script(load_asset_text("navigator_patch.js"))
+        # logger.debug("Injected navigator_patch.js")
 
     # --- Permissions API normalization ---
     await page.add_init_script(load_asset_text("permissions_patch.js"))
+    # logger.debug("Injected permissions_patch.js")
