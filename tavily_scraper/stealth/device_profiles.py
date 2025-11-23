@@ -22,6 +22,7 @@ class DeviceProfile:
     viewport_height: int
     locale: str
     timezone_id: str
+    region: str = "US"  # Default to US if missing
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -31,6 +32,7 @@ class DeviceProfile:
             "viewport_height": self.viewport_height,
             "locale": self.locale,
             "timezone_id": self.timezone_id,
+            "region": self.region,
         }
 
     @classmethod
@@ -44,6 +46,7 @@ class GeoProfile:
     latitude: float
     longitude: float
     accuracy: float
+    region: str = "US"
 
 
 @dataclass(frozen=True)
@@ -80,6 +83,7 @@ def _device_profiles() -> list[DeviceProfile]:
                 viewport_height=768,
                 locale="en-US",
                 timezone_id="America/New_York",
+                region="US",
             )
         ]
 
@@ -108,15 +112,23 @@ def _webgl_profiles() -> list[WebGLProfile]:
         ]
 
 
-def choose_device_profile() -> DeviceProfile:
+def choose_device_profile(region: str | None = None) -> DeviceProfile:
     profiles = _device_profiles()
+    if region:
+        filtered = [p for p in profiles if p.region == region]
+        if filtered:
+            return random.choice(filtered)
     return random.choice(profiles)
 
 
-def choose_geo_profile() -> GeoProfile | None:
+def choose_geo_profile(region: str | None = None) -> GeoProfile | None:
     profiles = _geo_profiles()
     if not profiles:
         return None
+    if region:
+        filtered = [p for p in profiles if p.region == region]
+        if filtered:
+            return random.choice(filtered)
     return random.choice(profiles)
 
 
@@ -128,13 +140,14 @@ def choose_webgl_profile() -> WebGLProfile:
 def build_context_options(
     config: StealthConfig,
     profile: DeviceProfile | None = None,
+    target_region: str | None = None,
 ) -> tuple[dict[str, Any], DeviceProfile]:
     """
     Build kwargs for browser.new_context based on a device profile and config.
     Returns the options dict and the profile used.
     """
     if profile is None:
-        profile = choose_device_profile()
+        profile = choose_device_profile(region=target_region)
 
     width = profile.viewport_width
     height = profile.viewport_height
@@ -154,7 +167,18 @@ def build_context_options(
     options["timezone_id"] = profile.timezone_id
 
     if config.random_geolocation:
-        geo = choose_geo_profile()
+        geo = choose_geo_profile(region=target_region)
+        # If we have a target region but no geo profile found (unlikely), we might want to fallback?
+        # But choose_geo_profile falls back to random if filtered is empty? 
+        # No, my implementation above returns random.choice(profiles) if filtered is empty? 
+        # No, it returns random.choice(profiles) only if region is None.
+        # Wait, my implementation:
+        # if region:
+        #    filtered = ...
+        #    if filtered: return random.choice(filtered)
+        # return random.choice(profiles)
+        # So if filtered is empty, it falls back to ANY profile. This is good.
+        
         if geo:
             geo_payload = {
                 "latitude": geo.latitude + random.uniform(-0.02, 0.02),

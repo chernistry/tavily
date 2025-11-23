@@ -58,3 +58,4 @@ class StealthConfig(msgspec.Struct, omit_defaults=True):
     behavior_profile: Literal["minimal", "default", "aggressive"] = "default"
     network_profile: Literal["wifi", "dsl", "4g", "fast_3g", "slow_3g"] = "wifi"
     fake_background_traffic: bool = False
+    target_region: Literal["US", "EU", "APAC"] | None = None

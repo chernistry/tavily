@@ -150,7 +150,8 @@ async def create_page_with_blocking(
 
         context_kwargs, used_profile = build_context_options(
             run_config.stealth_config, 
-            profile=profile
+            profile=profile,
+            target_region=run_config.stealth_config.target_region
         )
         
         # --► PROFILE SAVING (if new session or profile changed)
