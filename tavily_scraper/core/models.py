@@ -66,7 +66,8 @@ class RunConfig(msgspec.Struct, omit_defaults=True):
     playwright_max_concurrency: int = 2
     shard_size: int = 500
     proxy_config_path: Path | None = None
-    stealth_config: StealthConfig | None = None
+    stealth_config: Optional[StealthConfig] = None
+    session_id: Optional[str] = None
 
 
 

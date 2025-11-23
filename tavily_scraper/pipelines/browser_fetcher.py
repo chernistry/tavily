@@ -135,6 +135,14 @@ async def create_page_with_blocking(
     else:
         context_kwargs = {}
 
+    # --► SESSION LOADING
+    if run_config.session_id:
+        from tavily_scraper.stealth.session import SessionManager
+        session_manager = SessionManager()
+        state = session_manager.load_session(run_config.session_id)
+        if state:
+            context_kwargs["storage_state"] = state
+
     context = await browser.new_context(**context_kwargs)  # type: ignore[arg-type]
 
     async def route_handler(route: Route, request: Request) -> None:
@@ -167,6 +175,7 @@ async def create_page_with_blocking(
                 ".woff",
                 ".woff2",
                 ".mp4",
+                ".webm",
                 ".webm",
             )
         ):
@@ -400,6 +409,15 @@ async def fetch_one(
         # --► RESOURCE CLEANUP
         finally:
             if page:
+                # --► SESSION SAVING
+                if ctx.run_config.session_id and page.context:
+                    try:
+                        from tavily_scraper.stealth.session import SessionManager
+                        session_manager = SessionManager()
+                        await session_manager.save_session(page.context, ctx.run_config.session_id)
+                    except Exception as e:
+                        logger.warning(f"Failed to save session: {e}")
+
                 await page.close()
                 if page.context:
                     await page.context.close()
