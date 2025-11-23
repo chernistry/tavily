@@ -239,7 +239,7 @@ async def run_batch(
 
     # --► SUMMARY COMPUTATION
     summary = compute_run_summary(stats)
-    summary_path = config.data_dir / f"run_summary{stealth_suffix}.json"
+    summary_path = config.data_dir / "run_summary.json"
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     logger.info("Wrote run summary to %s", summary_path)
 

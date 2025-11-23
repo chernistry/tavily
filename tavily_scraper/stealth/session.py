@@ -64,5 +64,38 @@ class SessionManager:
             logger.info(f"Loaded session '{session_id}' from {path}")
             return state
         except Exception as e:
-            logger.warning(f"Failed to load session '{session_id}', starting fresh: {e}")
+    def _get_profile_path(self, session_id: str) -> Path:
+        """Return the path to the profile file."""
+        safe_id = "".join(c for c in session_id if c.isalnum() or c in ('-', '_'))
+        return self.data_dir / f"{safe_id}.profile.json"
+
+    async def save_profile(self, session_id: str, profile_data: Dict[str, Any]) -> None:
+        """Save the device profile associated with the session."""
+        if not session_id:
+            return
+        
+        try:
+            path = self._get_profile_path(session_id)
+            temp_path = path.with_suffix(".tmp")
+            with open(temp_path, "w", encoding="utf-8") as f:
+                json.dump(profile_data, f, indent=2)
+            temp_path.replace(path)
+            logger.info(f"Saved profile for '{session_id}'")
+        except Exception as e:
+            logger.error(f"Failed to save profile for '{session_id}': {e}")
+
+    def load_profile(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Load the device profile associated with the session."""
+        if not session_id:
+            return None
+            
+        path = self._get_profile_path(session_id)
+        if not path.exists():
+            return None
+            
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.warning(f"Failed to load profile for '{session_id}': {e}")
             return None

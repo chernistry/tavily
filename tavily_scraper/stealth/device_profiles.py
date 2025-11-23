@@ -23,6 +23,20 @@ class DeviceProfile:
     locale: str
     timezone_id: str
 
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "name": self.name,
+            "user_agent": self.user_agent,
+            "viewport_width": self.viewport_width,
+            "viewport_height": self.viewport_height,
+            "locale": self.locale,
+            "timezone_id": self.timezone_id,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> DeviceProfile:
+        return cls(**data)
+
 
 @dataclass(frozen=True)
 class GeoProfile:
@@ -111,11 +125,16 @@ def choose_webgl_profile() -> WebGLProfile:
     return random.choice(profiles)
 
 
-def build_context_options(config: StealthConfig) -> Dict[str, Any]:
+def build_context_options(
+    config: StealthConfig,
+    profile: DeviceProfile | None = None,
+) -> tuple[Dict[str, Any], DeviceProfile]:
     """
     Build kwargs for browser.new_context based on a device profile and config.
+    Returns the options dict and the profile used.
     """
-    profile = choose_device_profile()
+    if profile is None:
+        profile = choose_device_profile()
 
     width = profile.viewport_width
     height = profile.viewport_height
@@ -145,5 +164,5 @@ def build_context_options(config: StealthConfig) -> Dict[str, Any]:
             options["geolocation"] = geo_payload
             options["permissions"] = ["geolocation"]
 
-    return options
+    return options, profile
 
