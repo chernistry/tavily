@@ -45,6 +45,7 @@ async def main() -> None:
     use_browser: bool = "--browser" in sys.argv
     use_random: bool = "--random" in sys.argv
     target_mode: bool = "--success" in sys.argv
+    stealth_enabled: bool = "--stealth" in sys.argv
 
     # --► URL LOADING & PREPARATION
     urls_file: Path = Path(".sdd/raw/urls.csv")
@@ -69,10 +70,13 @@ async def main() -> None:
         target_success = None
 
     print(f"Browser fallback: {'enabled' if use_browser else 'disabled'}")
+    print(f"Stealth mode: {'enabled' if stealth_enabled else 'disabled'}")
     print("\nStarting pipeline...\n")
 
     # --► PIPELINE EXECUTION
     config = load_run_config()
+    if config.stealth_config:
+        config.stealth_config.enabled = stealth_enabled
 
     summary = await run_batch(
         urls,
@@ -83,14 +87,17 @@ async def main() -> None:
     )
 
     # --► RESULTS DISPLAY
-    _display_results(summary)
+    stats_filename = (
+        "stats_stealth.jsonl" if stealth_enabled else "stats.jsonl"
+    )
+    _display_results(summary, stats_filename)
 
 
 
 
 # ==== RESULTS FORMATTING & DISPLAY ==== #
 
-def _display_results(summary: dict[str, float]) -> None:
+def _display_results(summary: dict[str, float], stats_filename: str) -> None:
     """
     Display formatted pipeline execution results.
 
@@ -156,7 +163,7 @@ def _display_results(summary: dict[str, float]) -> None:
         print(f"  P50: {summary['p50_latency_playwright_ms']}ms")
         print(f"  P95: {summary['p95_latency_playwright_ms']}ms")
 
-    print("\nStats saved to: data/stats.jsonl")
+    print(f"\nStats saved to: data/{stats_filename}")
     print(f"{'=' * 60}\n")
 
 
@@ -174,7 +181,7 @@ def print_usage() -> None:
     print(
         """
 Usage:
-  python run_pipeline.py <number> [--success] [--browser] [--random]
+  python run_pipeline.py <number> [--success] [--browser] [--random] [--stealth]
 
 Modes:
   <number>           Process N URLs total (default)
@@ -183,6 +190,7 @@ Modes:
 Options:
   --browser          Enable Playwright browser fallback for failed HTTP requests
   --random           Shuffle URLs randomly before processing
+  --stealth          Enable stealth profile (anti-detection techniques)
 
 Examples:
   python run_pipeline.py 100                    # Process 100 URLs (HTTP only)

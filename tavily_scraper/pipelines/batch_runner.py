@@ -229,13 +229,17 @@ async def run_batch(
     # --► STATISTICS PERSISTENCE
     stats = [fetch_result_to_url_stats(r) for r in results]
 
-    stats_path = config.data_dir / "stats.jsonl"
+    stealth_suffix = ""
+    if config.stealth_config and config.stealth_config.enabled:
+        stealth_suffix = "_stealth"
+
+    stats_path = config.data_dir / f"stats{stealth_suffix}.jsonl"
     write_stats_jsonl(stats, stats_path)
     logger.info("Wrote %s stats to %s", len(stats), stats_path)
 
     # --► SUMMARY COMPUTATION
     summary = compute_run_summary(stats)
-    summary_path = config.data_dir / "run_summary.json"
+    summary_path = config.data_dir / f"run_summary{stealth_suffix}.json"
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     logger.info("Wrote run summary to %s", summary_path)
 

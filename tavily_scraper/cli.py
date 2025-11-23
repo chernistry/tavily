@@ -46,6 +46,11 @@ async def main() -> None:
         dest="headless",
         help="Run browser in headful mode",
     )
+    parser.add_argument(
+        "--session-id",
+        type=str,
+        help="Session ID for persistent browser state (cookies, storage)",
+    )
 
     args = parser.parse_args()
 
@@ -65,6 +70,11 @@ async def main() -> None:
     config.playwright_headless = args.headless
     if config.stealth_config:
         config.stealth_config.headless = args.headless
+
+    # Session ID
+    if args.session_id:
+        config.session_id = args.session_id
+        logger.info(f"Using session ID: {args.session_id}")
 
     # Single URL override (hack: write to temp file or handle in run_all)
     # For now, we'll just log it, as run_all expects a file. 
