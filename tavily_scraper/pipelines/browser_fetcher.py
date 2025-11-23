@@ -189,7 +189,56 @@ async def create_page_with_blocking(
         if run_config.stealth_config.mode == "aggressive":
             await simulate_network_conditions(page, profile="fast_3g")
 
+        # Optional viewport jitter early in the session
+        if run_config.stealth_config.viewport_jitter:
+            from tavily_scraper.stealth.behavior import jitter_viewport
+
+            await jitter_viewport(page, run_config.stealth_config)
+
     return page
+
+
+
+
+# ==== HELPER FUNCTIONS ==== #
+
+async def _handle_navigation(
+    page: Page,
+    url: str,
+    ctx: RunnerContext,
+    result: FetchResult,
+) -> bool:
+    """Handle browser navigation and stealth behavior. Returns True on success."""
+    try:
+        response = await page.goto(
+            url,
+            timeout=ctx.run_config.httpx_timeout_seconds * 1000,
+            wait_until="networkidle",
+        )
+
+        # --► BEHAVIORAL STEALTH
+        if ctx.run_config.stealth_config and ctx.run_config.stealth_config.enabled:
+            if ctx.run_config.stealth_config.simulate_human_behavior:
+                from tavily_scraper.stealth.behavior import (
+                    human_mouse_move,
+                    human_scroll,
+                )
+                await human_mouse_move(page)
+                await human_scroll(page)
+
+        # --► RESPONSE STATUS CLASSIFICATION
+        if response:
+            result["http_status"] = response.status
+            result["status"] = (
+                "success" if 200 <= response.status < 400 else "http_error"
+            )
+        else:
+            result["status"] = "http_error"
+
+        return True
+
+    except Exception:
+        return False
 
 
 
@@ -256,30 +305,13 @@ async def fetch_one(
 
             try:
                 # --► BROWSER NAVIGATION
+                start = perf_counter()
+                nav_success = await _handle_navigation(page, url, ctx, result)
                 elapsed_ms = int((perf_counter() - start) * 1000)
                 result["latency_ms"] = elapsed_ms
 
-                # --► BEHAVIORAL STEALTH
-                if ctx.run_config.stealth_config and ctx.run_config.stealth_config.enabled:
-                    if ctx.run_config.stealth_config.simulate_human_behavior:
-                        from tavily_scraper.stealth.behavior import (
-                            human_mouse_move,
-                            human_scroll,
-                        )
-
-                        await human_mouse_move(page)
-                        await human_scroll(page)
-
-                # --► RESPONSE STATUS CLASSIFICATION
-                if response:
-                    result["http_status"] = response.status
-                    result["status"] = (
-                        "success"
-                        if 200 <= response.status < 400
-                        else "http_error"
-                    )
-                else:
-                    result["status"] = "http_error"
+                if not nav_success:
+                    raise Exception("Navigation failed")
 
                 # --► CONTENT EXTRACTION
                 content = await page.content()
@@ -311,9 +343,9 @@ async def fetch_one(
                     # --► CAPTCHA SOLVER HOOK
                     solved = False
                     if ctx.run_config.stealth_config and ctx.run_config.stealth_config.enabled:
-                        from tavily_scraper.stealth.captcha import NoOpSolver
-                        # In the future, we can load a specific solver from config
-                        solver = NoOpSolver()
+                        from tavily_scraper.stealth.captcha import get_solver_from_env
+
+                        solver = get_solver_from_env()
                         solved = await solver.solve(page)
 
                     if not solved:

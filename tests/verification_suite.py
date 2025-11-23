@@ -48,9 +48,9 @@ async def verify_sannysoft() -> bool:
         
         # We expect "WebDriver" to be false (red or green depending on site logic, usually green means false)
         # Sannysoft table: "WebDriver" -> "false" (green)
-        
-        webdriver_false = 'class="passed">WebDriver (New)</td><td class="passed">missing (passed)</td>' in content or \
-                          'WebDriver' in content and 'false' in content.lower()
+        # Check content for validation (not used for assertion, just for debugging)
+        _ = 'class="passed">WebDriver (New)</td><td class="passed">missing (passed)</td>' in content or \
+            'WebDriver' in content and 'false' in content.lower()
         
         # Simple check for now: check if navigator.webdriver is undefined in console
         webdriver_eval = await page.evaluate("navigator.webdriver")
