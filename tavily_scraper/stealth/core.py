@@ -21,6 +21,9 @@ async def apply_core_stealth(page: Page, config: StealthConfig) -> None:
     if config.spoof_webdriver:
         await page.add_init_script(
             """
+            if (Object.getPrototypeOf(navigator).webdriver) {
+                delete Object.getPrototypeOf(navigator).webdriver;
+            }
             Object.defineProperty(navigator, 'webdriver', {
                 get: () => undefined
             });

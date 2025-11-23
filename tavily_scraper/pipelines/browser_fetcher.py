@@ -78,10 +78,15 @@ async def browser_lifecycle(
         proxy_manager.playwright_proxy() if proxy_manager is not None else None
     )
 
+    launch_args = []
+    if run_config.stealth_config and run_config.stealth_config.enabled:
+        launch_args.append("--disable-blink-features=AutomationControlled")
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(
             headless=run_config.playwright_headless,
             proxy=proxy_dict,  # type: ignore[arg-type]
+            args=launch_args,
         )
 
         try:
