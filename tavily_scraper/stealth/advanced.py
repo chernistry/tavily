@@ -8,7 +8,9 @@ from typing import Literal
 
 from playwright.async_api import Page
 
+from tavily_scraper.stealth.asset_loader import load_asset_text
 from tavily_scraper.stealth.config import StealthConfig
+from tavily_scraper.stealth.device_profiles import choose_webgl_profile
 
 
 async def apply_advanced_stealth(page: Page, config: StealthConfig) -> None:
@@ -26,192 +28,24 @@ async def apply_advanced_stealth(page: Page, config: StealthConfig) -> None:
     if not (config.enabled and config.fingerprint_evasions):
         return
 
-    # Canvas noise injection – inspired by common stealth plugins. We add a tiny
-    # amount of noise to a subset of pixels so that exact fingerprints differ
-    # across runs, but visual output is unaffected for normal users.
-    await page.add_init_script(
-        """
-        (() => {
-          try {
-            if (HTMLCanvasElement.prototype.__tavily_canvas_patched__) {
-              return;
-            }
-            HTMLCanvasElement.prototype.__tavily_canvas_patched__ = true;
+    # Canvas noise injection.
+    await page.add_init_script(load_asset_text("fingerprint_canvas.js"))
 
-            const originalGetImageData =
-              CanvasRenderingContext2D.prototype.getImageData;
-
-            CanvasRenderingContext2D.prototype.getImageData = function(x, y, w, h) {
-              const imageData = originalGetImageData.call(this, x, y, w, h);
-              try {
-                const { data } = imageData;
-                // Nudge every Nth pixel very slightly
-                for (let i = 0; i < data.length; i += 4 * 10) {
-                  data[i] = data[i] ^ 0x01;       // R
-                  data[i + 1] = data[i + 1] ^ 0x01; // G
-                  data[i + 2] = data[i + 2] ^ 0x01; // B
-                }
-              } catch (e) {
-                // Swallow – worst case we return original data
-              }
-              return imageData;
-            };
-          } catch (e) {
-            // Do nothing if canvas is non-standard
-          }
-        })();
-        """
+    # WebGL vendor spoofing based on configurable profiles.
+    webgl_profile = choose_webgl_profile()
+    webgl_script = (
+        load_asset_text("fingerprint_webgl.js")
+        .replace("__WEBGL_VENDOR__", webgl_profile.vendor)
+        .replace("__WEBGL_RENDERER__", webgl_profile.renderer)
     )
+    await page.add_init_script(webgl_script)
 
-    # WebGL vendor spoofing – normalize to a common vendor/renderer combo.
-    await page.add_init_script(
-        """
-        (() => {
-          try {
-            const patchContext = (WebGLClass) => {
-              if (!WebGLClass || WebGLClass.prototype.__tavily_webgl_patched__) {
-                return;
-              }
-              WebGLClass.prototype.__tavily_webgl_patched__ = true;
+    # Audio fingerprint softening.
+    await page.add_init_script(load_asset_text("fingerprint_audio.js"))
 
-              const getParameter = WebGLClass.prototype.getParameter;
-              WebGLClass.prototype.getParameter = function(parameter) {
-                try {
-                  const debugInfo = this.getExtension &&
-                    this.getExtension('WEBGL_debug_renderer_info');
-                  if (debugInfo) {
-                    if (parameter === debugInfo.UNMASKED_VENDOR_WEBGL) {
-                      return 'Intel Inc.';
-                    }
-                    if (parameter === debugInfo.UNMASKED_RENDERER_WEBGL) {
-                      return 'Intel Iris OpenGL Engine';
-                    }
-                  }
-                  // Fallback magic numbers for UNMASKED_VENDOR/RENDERER
-                  if (parameter === 37445) {
-                    return 'Intel Inc.';
-                  }
-                  if (parameter === 37446) {
-                    return 'Intel Iris OpenGL Engine';
-                  }
-                } catch (e) {
-                  // If anything goes wrong, fall through to original
-                }
-                return getParameter.call(this, parameter);
-              };
-            };
-
-            if (typeof WebGLRenderingContext !== 'undefined') {
-              patchContext(WebGLRenderingContext);
-            }
-            if (typeof WebGL2RenderingContext !== 'undefined') {
-              patchContext(WebGL2RenderingContext);
-            }
-          } catch (e) {
-            // Leave WebGL untouched if environment differs
-          }
-        })();
-        """
-    )
-
-    # WebRTC masking – remove local IP leakage and normalize devices.
+    # WebRTC masking (IP/device leakage) if enabled.
     if config.mask_webrtc:
-        await page.add_init_script(
-            """
-            (() => {
-              try {
-                const RTC = window.RTCPeerConnection || window.webkitRTCPeerConnection;
-                if (RTC && !RTC.prototype.__tavily_webrtc_patched__) {
-                  RTC.prototype.__tavily_webrtc_patched__ = true;
-
-                  const origCreateDataChannel = RTC.prototype.createDataChannel;
-                  RTC.prototype.createDataChannel = function() {
-                    try {
-                      this.__tavily_webrtc_dc__ = true;
-                    } catch (e) {}
-                    return origCreateDataChannel.apply(this, arguments);
-                  };
-
-                  const origOnIceCandidateDesc = Object.getOwnPropertyDescriptor(RTC.prototype, 'onicecandidate');
-                  Object.defineProperty(RTC.prototype, 'onicecandidate', {
-                    set: function(handler) {
-                      const wrapped = (event) => {
-                        try {
-                          if (event && event.candidate && event.candidate.candidate) {
-                            const c = event.candidate.candidate;
-                            // Replace host IPs with 0.0.0.0
-                            const sanitized = c.replace(/(candidate:\\d+ \\d+ udp \\d+ )([0-9.]+)( .*)/, '$10.0.0.0$3');
-                            event = new RTCIceCandidate({ sdpMid: event.candidate.sdpMid, sdpMLineIndex: event.candidate.sdpMLineIndex, candidate: sanitized });
-                          }
-                        } catch (e) {}
-                        return handler ? handler(event) : undefined;
-                      };
-                      if (origOnIceCandidateDesc && origOnIceCandidateDesc.set) {
-                        return origOnIceCandidateDesc.set.call(this, wrapped);
-                      }
-                      this._onicecandidate = wrapped;
-                    },
-                    get: function() {
-                      return this._onicecandidate;
-                    },
-                    configurable: true,
-                  });
-                }
-
-                // Normalize enumerateDevices to avoid empty arrays in headless
-                if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-                  const origEnum = navigator.mediaDevices.enumerateDevices.bind(navigator.mediaDevices);
-                  navigator.mediaDevices.enumerateDevices = () => origEnum().then(list => {
-                    if (list && list.length > 0) return list;
-                    return [
-                      { kind: 'audioinput', label: 'Default - Microphone', deviceId: 'default', groupId: 'default' },
-                      { kind: 'audiooutput', label: 'Default - Speakers', deviceId: 'default', groupId: 'default' },
-                    ];
-                  }).catch(() => ([
-                    { kind: 'audioinput', label: 'Default - Microphone', deviceId: 'default', groupId: 'default' },
-                    { kind: 'audiooutput', label: 'Default - Speakers', deviceId: 'default', groupId: 'default' },
-                  ]));
-                }
-              } catch (e) {
-                // Ignore if WebRTC is unavailable
-              }
-            })();
-            """
-        )
-
-    # AudioContext fingerprinting is increasingly used. We add subtle noise to
-    # the returned channel data to make fingerprints less stable.
-    await page.add_init_script(
-        """
-        (() => {
-          try {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (!AudioCtx || AudioCtx.prototype.__tavily_audio_patched__) {
-              return;
-            }
-            AudioCtx.prototype.__tavily_audio_patched__ = true;
-
-            const originalGetChannelData = AudioCtx.prototype.getChannelData;
-
-            AudioCtx.prototype.getChannelData = function() {
-              const results = originalGetChannelData.apply(this, arguments);
-              try {
-                const len = results.length;
-                const stride = Math.max(1, Math.floor(len / 500));
-                for (let i = 0; i < len; i += stride) {
-                  results[i] = results[i] + (Math.random() - 0.5) * 1e-7;
-                }
-              } catch (e) {
-                // Ignore if typed arrays behave unexpectedly
-              }
-              return results;
-            };
-          } catch (e) {
-            // No-op if AudioContext is unavailable
-          }
-        })();
-        """
-    )
+        await page.add_init_script(load_asset_text("webrtc_mask.js"))
 
 
 async def simulate_network_conditions(
