@@ -18,7 +18,7 @@ class _SimpleHandler(BaseHTTPRequestHandler):
     # Body is injected via a class attribute for simplicity in tests.
     body: str = "<html><body>OK</body></html>"
 
-    def do_GET(self) -> None:  # type: ignore[override]
+    def do_GET(self) -> None:
         payload = self.body.encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -42,12 +42,14 @@ def _make_test_server(html: str) -> tuple[HTTPServer, str]:
     server = HTTPServer(("127.0.0.1", 0), _SimpleHandler)
     thread = threading.Thread(target=_run_server, args=(server,), daemon=True)
     thread.start()
-    host, port = server.server_address
-    return server, f"http://{host}:{port}/"
+    addr = server.server_address
+    host = addr[0] if isinstance(addr[0], str) else addr[0].decode()
+    port = addr[1]
+    return server, f"http://{host}:{port}"
 
 
 class _AllowAllRobots:
-    async def can_fetch(self, url: str, user_agent: str | None = None) -> bool:  # noqa: D401
+    async def can_fetch(self, url: str, user_agent: str | None = None) -> bool:
         """Always allow fetching; used to avoid network in tests."""
         return True
 
@@ -56,7 +58,7 @@ def _make_runner_context() -> RunnerContext:
     """Create a minimal RunnerContext suitable for browser_fetcher tests."""
     run_config = RunConfig()
     scheduler = DomainScheduler(global_limit=4)
-    robots_client = _AllowAllRobots()  # type: ignore[arg-type]
+    robots_client = _AllowAllRobots()
     # browser_fetcher.fetch_one does not touch http_client, so a dummy value is safe.
     return RunnerContext(
         run_config=run_config,

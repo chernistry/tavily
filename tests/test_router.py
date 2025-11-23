@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+from typing import cast
+
 import pytest
 
+from tavily_scraper.config.constants import Status
 from tavily_scraper.core.models import (
     FetchResult,
     RunConfig,
@@ -26,7 +29,7 @@ def _make_fetch_result(
         domain="example.com",
         method="httpx",
         stage="primary",
-        status=status,  # type: ignore[assignment]
+        status=cast(Status, status),
         http_status=http_status,
         latency_ms=100,
         content_len=content_len,
@@ -80,7 +83,7 @@ def _make_runner_context() -> RunnerContext:
             """Always allow fetch."""
             return True
 
-    robots_client = _RobotsStub()  # type: ignore[arg-type]
+    robots_client = _RobotsStub()
     return RunnerContext(
         run_config=run_config,
         proxy_manager=None,
@@ -95,11 +98,11 @@ async def test_route_and_fetch_http_only(monkeypatch: pytest.MonkeyPatch) -> Non
     """router.route_and_fetch should not call browser when HTTP is sufficient."""
     calls: dict[str, int] = {"http": 0, "browser": 0}
 
-    async def fake_http_fetch_one(job: UrlJob, ctx: RunnerContext) -> FetchResult:  # type: ignore[override]
+    async def fake_http_fetch_one(job: UrlJob, ctx: RunnerContext) -> FetchResult:
         calls["http"] += 1
         return _make_fetch_result(status="success", content_len=10_000)
 
-    async def fake_browser_fetch_one(job: UrlJob, ctx: RunnerContext, browser: object) -> FetchResult:  # type: ignore[override]
+    async def fake_browser_fetch_one(job: UrlJob, ctx: RunnerContext, browser: object) -> FetchResult:
         calls["browser"] += 1
         return _make_fetch_result(status="success", content_len=20_000, http_status=200)
 
@@ -132,12 +135,12 @@ async def test_route_and_fetch_uses_browser_fallback(monkeypatch: pytest.MonkeyP
     """router.route_and_fetch should call browser when needs_browser is True."""
     calls: dict[str, int] = {"http": 0, "browser": 0}
 
-    async def fake_http_fetch_one(job: UrlJob, ctx: RunnerContext) -> FetchResult:  # type: ignore[override]
+    async def fake_http_fetch_one(job: UrlJob, ctx: RunnerContext) -> FetchResult:
         calls["http"] += 1
         # Simulate a timeout that should push us to browser.
         return _make_fetch_result(status="timeout", http_status=None)
 
-    async def fake_browser_fetch_one(job: UrlJob, ctx: RunnerContext, browser: object) -> FetchResult:  # type: ignore[override]
+    async def fake_browser_fetch_one(job: UrlJob, ctx: RunnerContext, browser: object) -> FetchResult:
         calls["browser"] += 1
         res = _make_fetch_result(status="success", http_status=200, content_len=30_000)
         res["method"] = "playwright"

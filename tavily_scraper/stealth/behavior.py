@@ -5,15 +5,13 @@ Behavioral stealth to simulate human interaction patterns.
 import asyncio
 import random
 import string
-import math
-from typing import List, Tuple
 
 from playwright.async_api import Page
 
 from tavily_scraper.stealth.config import StealthConfig
 
 
-def _bezier_point(t: float, p0: Tuple[int, int], p1: Tuple[int, int], p2: Tuple[int, int], p3: Tuple[int, int]) -> Tuple[int, int]:
+def _bezier_point(t: float, p0: tuple[int, int], p1: tuple[int, int], p2: tuple[int, int], p3: tuple[int, int]) -> tuple[int, int]:
     """Calculate point on a cubic Bezier curve at time t (0..1)."""
     u = 1 - t
     tt = t * t
@@ -27,11 +25,11 @@ def _bezier_point(t: float, p0: Tuple[int, int], p1: Tuple[int, int], p2: Tuple[
 
 
 def generate_mouse_path(
-    start: Tuple[int, int],
-    end: Tuple[int, int],
+    start: tuple[int, int],
+    end: tuple[int, int],
     steps: int = 20,
     deviation: int = 50
-) -> List[Tuple[int, int]]:
+) -> list[tuple[int, int]]:
     """
     Generate a human-like mouse path using a cubic Bezier curve.
     
@@ -55,12 +53,12 @@ def generate_mouse_path(
     
     # Add randomness to control points
     p1 = (
-        start[0] + dx * 0.33 + random.randint(-deviation, deviation),
-        start[1] + dy * 0.33 + random.randint(-deviation, deviation)
+        int(start[0] + dx * 0.33 + random.randint(-deviation, deviation)),
+        int(start[1] + dy * 0.33 + random.randint(-deviation, deviation))
     )
     p2 = (
-        start[0] + dx * 0.66 + random.randint(-deviation, deviation),
-        start[1] + dy * 0.66 + random.randint(-deviation, deviation)
+        int(start[0] + dx * 0.66 + random.randint(-deviation, deviation)),
+        int(start[1] + dy * 0.66 + random.randint(-deviation, deviation))
     )
 
     path = []
@@ -76,7 +74,7 @@ def generate_mouse_path(
     return path
 
 
-async def human_mouse_move(page: Page, config: StealthConfig = None) -> None:
+async def human_mouse_move(page: Page, config: StealthConfig | None = None) -> None:
     """
     Simulate human-like mouse movement using Bezier curves and variable speed.
     """
@@ -130,7 +128,7 @@ async def human_mouse_move(page: Page, config: StealthConfig = None) -> None:
     # "Overshoot" or "correction" behavior could be added here for aggressive mode.
 
 
-async def human_scroll(page: Page, config: StealthConfig = None) -> None:
+async def human_scroll(page: Page, config: StealthConfig | None = None) -> None:
     """
     Simulate human-like scrolling with reading patterns.
     """
@@ -145,7 +143,7 @@ async def human_scroll(page: Page, config: StealthConfig = None) -> None:
     # Aggressive: More segments, more variable
     segments = random.randint(3, 6) if profile == "aggressive" else random.randint(2, 4)
     
-    for i in range(segments):
+    for _ in range(segments):
         # Scroll down
         scroll_amount = random.randint(150, 500)
         # Smooth scroll (simulated by multiple small wheels or just one wheel with steps? 
@@ -173,7 +171,7 @@ async def human_scroll(page: Page, config: StealthConfig = None) -> None:
             await asyncio.sleep(random.uniform(0.5, 1.5))
 
 
-async def human_type(page: Page, selector: str, text: str, config: StealthConfig = None) -> None:
+async def human_type(page: Page, selector: str, text: str, config: StealthConfig | None = None) -> None:
     """
     Simulate human-like typing with variable delays, thinking pauses, and typos.
     """

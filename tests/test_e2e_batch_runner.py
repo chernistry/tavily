@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import threading
+from collections.abc import Generator
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
@@ -16,7 +17,7 @@ from tavily_scraper.pipelines.batch_runner import run_all
 class _E2EHandler(BaseHTTPRequestHandler):
     """HTTP handler serving robots.txt and simple HTML pages."""
 
-    def do_GET(self) -> None:  # type: ignore[override]
+    def do_GET(self) -> None:
         if self.path == "/robots.txt":
             body = b"User-agent: *\nAllow: /\n"
             content_type = "text/plain; charset=utf-8"
@@ -36,7 +37,7 @@ class _E2EHandler(BaseHTTPRequestHandler):
 
 
 @pytest.fixture
-def local_http_server() -> tuple[HTTPServer, str]:
+def local_http_server() -> Generator[tuple[HTTPServer, str], None, None]:
     """Start a tiny local HTTP server for E2E tests."""
     server = HTTPServer(("127.0.0.1", 0), _E2EHandler)
 
@@ -46,7 +47,9 @@ def local_http_server() -> tuple[HTTPServer, str]:
 
     thread = threading.Thread(target=_run, daemon=True)
     thread.start()
-    host, port = server.server_address
+    addr = server.server_address
+    host = addr[0] if isinstance(addr[0], str) else addr[0].decode()
+    port = addr[1]
     base_url = f"http://{host}:{port}"
     yield server, base_url
     server.shutdown()

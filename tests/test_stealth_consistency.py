@@ -1,5 +1,6 @@
 import shutil
 import tempfile
+from collections.abc import Generator
 
 import pytest
 
@@ -9,16 +10,16 @@ from tavily_scraper.stealth.session import SessionManager
 
 class TestStickyProfiles:
     @pytest.fixture
-    def temp_dir(self):
+    def temp_dir(self) -> Generator[str, None, None]:
         d = tempfile.mkdtemp()
         yield d
         shutil.rmtree(d)
 
     @pytest.fixture
-    def manager(self, temp_dir):
+    def manager(self, temp_dir: str) -> SessionManager:
         return SessionManager(data_dir=temp_dir)
 
-    def test_device_profile_serialization(self):
+    def test_device_profile_serialization(self) -> None:
         profile = DeviceProfile(
             name="test_profile",
             user_agent="Mozilla/5.0 Test",
@@ -34,7 +35,7 @@ class TestStickyProfiles:
         assert reconstructed == profile
 
     @pytest.mark.asyncio
-    async def test_save_load_profile(self, manager):
+    async def test_save_load_profile(self, manager: SessionManager) -> None:
         profile_data = {
             "name": "sticky_profile",
             "user_agent": "StickyAgent/1.0",
@@ -55,17 +56,18 @@ class TestStickyProfiles:
         assert path.exists()
         assert path.name == "user_sticky.profile.json"
 
-    def test_load_missing_profile(self, manager):
+    def test_load_missing_profile(self, manager: SessionManager) -> None:
         loaded = manager.load_profile("ghost_user")
         assert loaded is None
 
 
 class TestFingerprintHardening:
     @pytest.mark.asyncio
-    async def test_canvas_noise_injection(self):
-        from tavily_scraper.stealth.config import StealthConfig
-        from tavily_scraper.stealth.advanced import apply_advanced_stealth
+    async def test_canvas_noise_injection(self) -> None:
         from playwright.async_api import async_playwright
+
+        from tavily_scraper.stealth.advanced import apply_advanced_stealth
+        from tavily_scraper.stealth.config import StealthConfig
 
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
@@ -119,10 +121,11 @@ class TestFingerprintHardening:
             await browser.close()
 
     @pytest.mark.asyncio
-    async def test_webgl_vendor_spoofing(self):
-        from tavily_scraper.stealth.config import StealthConfig
-        from tavily_scraper.stealth.advanced import apply_advanced_stealth
+    async def test_webgl_vendor_spoofing(self) -> None:
         from playwright.async_api import async_playwright
+
+        from tavily_scraper.stealth.advanced import apply_advanced_stealth
+        from tavily_scraper.stealth.config import StealthConfig
 
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)

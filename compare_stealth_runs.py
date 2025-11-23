@@ -10,8 +10,10 @@ import asyncio
 import json
 from collections.abc import Iterable
 from pathlib import Path
+from typing import Any
 
 from tavily_scraper.config.env import load_run_config
+from tavily_scraper.core.models import RunSummary
 from tavily_scraper.pipelines.batch_runner import run_batch
 from tavily_scraper.stealth.config import StealthConfig
 from tavily_scraper.utils.io import load_urls_from_csv
@@ -27,7 +29,7 @@ async def run_once(
     enable_stealth: bool,
     stats_suffix: str,
     use_browser: bool,
-) -> dict[str, float]:
+) -> RunSummary:
     """
     Run a single batch with the requested stealth configuration.
     """
@@ -46,7 +48,7 @@ async def run_once(
     return summary
 
 
-def _load_stats(path: Path) -> list[dict]:
+def _load_stats(path: Path) -> list[dict[str, Any]]:
     if not path.exists():
         raise FileNotFoundError(f"Stats file not found: {path}")
     return [
@@ -61,8 +63,8 @@ def _format_pct(value: float) -> str:
 
 
 def compare_summaries(
-    baseline: dict[str, float],
-    stealth: dict[str, float],
+    baseline: RunSummary,
+    stealth: RunSummary,
 ) -> None:
     """
     Print a concise comparison of the two runs.
@@ -78,8 +80,8 @@ def compare_summaries(
     print("\nComparison (baseline vs stealth):")
     print(f"{'Metric':25s} {'Baseline':>12s} {'Stealth':>12s} {'Delta':>12s}")
     for key, label in metrics:
-        base = baseline.get(key, 0.0)
-        ste = stealth.get(key, 0.0)
+        base = baseline[key] if key in baseline else 0.0  # type: ignore[literal-required]
+        ste = stealth[key] if key in stealth else 0.0  # type: ignore[literal-required]
         delta = ste - base
         print(
             f"{label:25s} {_format_pct(base):>12s} "
@@ -139,12 +141,12 @@ async def main() -> None:
         use_browser=not args.no_browser,
     )
 
-    baseline_stats = _load_stats(DATA_DIR / "stats.jsonl")
-    stealth_stats = _load_stats(DATA_DIR / "stats_stealth.jsonl")
+    baseline_stats_raw = _load_stats(DATA_DIR / "stats.jsonl")
+    stealth_stats_raw = _load_stats(DATA_DIR / "stats_stealth.jsonl")
 
     # Recompute summaries to make sure we compare on-disk stats
-    baseline_summary = compute_run_summary(baseline_stats)
-    stealth_summary = compute_run_summary(stealth_stats)
+    baseline_summary = compute_run_summary([s for s in baseline_stats_raw])  # type: ignore[misc]
+    stealth_summary = compute_run_summary([s for s in stealth_stats_raw])  # type: ignore[misc]
 
     compare_summaries(baseline_summary, stealth_summary)
 

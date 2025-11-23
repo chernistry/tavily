@@ -39,6 +39,8 @@ def test_compute_run_summary() -> None:
             "error_message": None,
             "timestamp": "2025-01-01T00:00:00Z",
             "shard_id": 0,
+            "block_type": None,
+            "block_vendor": None,
         },
         {
             "url": "https://test.com",
@@ -57,6 +59,8 @@ def test_compute_run_summary() -> None:
             "error_message": None,
             "timestamp": "2025-01-01T00:00:01Z",
             "shard_id": 0,
+            "block_type": None,
+            "block_vendor": None,
         },
     ]
 

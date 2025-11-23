@@ -1,7 +1,9 @@
 import pytest
 from playwright.async_api import async_playwright
-from tavily_scraper.stealth.config import StealthConfig
+
 from tavily_scraper.stealth.advanced import simulate_network_conditions
+from tavily_scraper.stealth.config import StealthConfig
+
 
 @pytest.mark.asyncio
 async def test_network_throttling() -> None:
@@ -33,8 +35,8 @@ async def test_network_throttling() -> None:
 @pytest.mark.asyncio
 async def test_background_traffic() -> None:
     """Verify background traffic script injection."""
-    from tavily_scraper.pipelines.browser_fetcher import create_page_with_blocking
     from tavily_scraper.core.models import RunConfig
+    from tavily_scraper.pipelines.browser_fetcher import create_page_with_blocking
     
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
