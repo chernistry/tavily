@@ -21,6 +21,7 @@ from tavily_scraper.config.constants import (
     DEFAULT_SHARD_SIZE,
 )
 from tavily_scraper.core.models import ProxyConfig, RunConfig
+from tavily_scraper.stealth.config import StealthConfig
 
 # ==== ENVIRONMENT VARIABLE HELPERS ==== #
 
@@ -150,6 +151,10 @@ def load_run_config() -> RunConfig:
         playwright_max_concurrency=playwright_max_concurrency,
         shard_size=shard_size,
         proxy_config_path=proxy_config_path,
+        stealth_config=StealthConfig(
+            enabled=False,  # Default to False, CLI can override
+            mode="moderate",
+        ),
     )
 
 

@@ -94,7 +94,10 @@ async def browser_lifecycle(
 
 # ==== PAGE CREATION WITH RESOURCE BLOCKING ==== #
 
-async def create_page_with_blocking(browser: Browser) -> Page:
+async def create_page_with_blocking(
+    browser: Browser,
+    run_config: RunConfig,
+) -> Page:
     """
     Create browser page with aggressive resource blocking.
 
@@ -153,7 +156,13 @@ async def create_page_with_blocking(browser: Browser) -> Page:
         await route.continue_()
 
     await context.route("**/*", route_handler)
-    return await context.new_page()
+    page = await context.new_page()
+
+    if run_config.stealth_config and run_config.stealth_config.enabled:
+        from tavily_scraper.stealth.core import apply_core_stealth
+        await apply_core_stealth(page, run_config.stealth_config)
+
+    return page
 
 
 
@@ -213,21 +222,26 @@ async def fetch_one(
         page: Page | None = None
 
         try:
-            page = await create_page_with_blocking(browser)
+            page = await create_page_with_blocking(browser, ctx.run_config)
 
             await ctx.scheduler.acquire(domain)
             start = perf_counter()
 
             try:
                 # --► BROWSER NAVIGATION
-                response = await page.goto(
-                    url,
-                    timeout=ctx.run_config.httpx_timeout_seconds * 1000,
-                    wait_until="networkidle",
-                )
-
                 elapsed_ms = int((perf_counter() - start) * 1000)
                 result["latency_ms"] = elapsed_ms
+
+                # --► BEHAVIORAL STEALTH
+                if ctx.run_config.stealth_config and ctx.run_config.stealth_config.enabled:
+                    if ctx.run_config.stealth_config.simulate_human_behavior:
+                        from tavily_scraper.stealth.behavior import (
+                            human_mouse_move,
+                            human_scroll,
+                        )
+
+                        await human_mouse_move(page)
+                        await human_scroll(page)
 
                 # --► RESPONSE STATUS CLASSIFICATION
                 if response:

@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Literal, NewType, TypedDict
 import msgspec
 
 from tavily_scraper.config.constants import Method, Stage, Status
+from tavily_scraper.stealth.config import StealthConfig
 
 if TYPE_CHECKING:
     import httpx
@@ -65,6 +66,7 @@ class RunConfig(msgspec.Struct, omit_defaults=True):
     playwright_max_concurrency: int = 2
     shard_size: int = 500
     proxy_config_path: Path | None = None
+    stealth_config: StealthConfig | None = None
 
 
 
