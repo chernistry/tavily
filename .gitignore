@@ -86,3 +86,4 @@ secrets.json
 proxy.json
 backlog/*
 .ctx/*
+.sdd/drafts/*
