@@ -130,12 +130,10 @@ async def create_page_with_blocking(
     # Configure context with more realistic fingerprints when stealth is on.
     if run_config.stealth_config and run_config.stealth_config.enabled:
         from tavily_scraper.stealth.device_profiles import build_context_options
-        from typing import Any
 
-        context_kwargs_raw = build_context_options(run_config.stealth_config)
-        context_kwargs = context_kwargs_raw  # type: ignore[assignment]
+        context_kwargs = build_context_options(run_config.stealth_config)
     else:
-        context_kwargs = {}  # type: ignore[assignment]
+        context_kwargs = {}
 
     context = await browser.new_context(**context_kwargs)  # type: ignore[arg-type]
 
