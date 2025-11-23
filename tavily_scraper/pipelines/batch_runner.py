@@ -150,6 +150,8 @@ async def run_batch(
     max_urls: int | None = None,
     target_success: int | None = None,
     use_browser: bool = False,
+    *,
+    stats_suffix: str = "",
 ) -> RunSummary:
     """
     Execute batch scraping on a list of URLs.
@@ -229,17 +231,13 @@ async def run_batch(
     # --► STATISTICS PERSISTENCE
     stats = [fetch_result_to_url_stats(r) for r in results]
 
-    stealth_suffix = ""
-    if config.stealth_config and config.stealth_config.enabled:
-        stealth_suffix = "_stealth"
-
-    stats_path = config.data_dir / f"stats{stealth_suffix}.jsonl"
+    stats_path = config.data_dir / f"stats{stats_suffix}.jsonl"
     write_stats_jsonl(stats, stats_path)
     logger.info("Wrote %s stats to %s", len(stats), stats_path)
 
     # --► SUMMARY COMPUTATION
     summary = compute_run_summary(stats)
-    summary_path = config.data_dir / "run_summary.json"
+    summary_path = config.data_dir / f"run_summary{stats_suffix}.json"
     summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     logger.info("Wrote run summary to %s", summary_path)
 
@@ -260,6 +258,7 @@ async def run_all(
     max_urls: int | None = None,
     target_success: int | None = None,
     use_browser: bool = True,
+    stats_suffix: str = "",
 ) -> RunSummary:
     """
     Canonical entry point for running the full batch pipeline.
@@ -277,6 +276,7 @@ async def run_all(
         max_urls: Maximum number of URLs to process (optional)
         target_success: Stop after N successful fetches (optional)
         use_browser: Enable browser fallback (default: True)
+        stats_suffix: Optional suffix for stats/run_summary filenames
 
     Returns:
         RunSummary containing aggregate metrics
@@ -297,6 +297,7 @@ async def run_all(
         max_urls=max_urls,
         target_success=target_success,
         use_browser=use_browser,
+        stats_suffix=stats_suffix,
     )
 
 

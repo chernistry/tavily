@@ -1,12 +1,11 @@
-import json
 import shutil
 import tempfile
-from pathlib import Path
-from unittest.mock import AsyncMock
 
 import pytest
+
 from tavily_scraper.stealth.device_profiles import DeviceProfile
 from tavily_scraper.stealth.session import SessionManager
+
 
 class TestStickyProfiles:
     @pytest.fixture

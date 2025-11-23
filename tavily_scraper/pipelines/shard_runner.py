@@ -5,10 +5,9 @@ from __future__ import annotations
 import asyncio
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any, cast
 
 from playwright.async_api import Browser
-
-from typing import Any, cast
 
 from tavily_scraper.core.models import (
     FetchResult,

@@ -14,7 +14,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Literal, NewType, TypedDict
+from typing import TYPE_CHECKING, Any, Literal, NewType, TypedDict
 
 import msgspec
 
@@ -66,8 +66,8 @@ class RunConfig(msgspec.Struct, omit_defaults=True):
     playwright_max_concurrency: int = 2
     shard_size: int = 500
     proxy_config_path: Path | None = None
-    stealth_config: Optional[StealthConfig] = None
-    session_id: Optional[str] = None
+    stealth_config: StealthConfig | None = None
+    session_id: str | None = None
 
 
 
@@ -258,7 +258,7 @@ class RunSummary(TypedDict):
     total_urls: int
     stats_rows: int
     success_rate: float
-    stealth_stats: Dict[str, Any] = None  # New field for stealth metrics
+    stealth_stats: dict[str, Any] | None
     http_error_rate: float
     timeout_rate: float
     captcha_rate: float

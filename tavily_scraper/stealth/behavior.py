@@ -7,6 +7,7 @@ import random
 import string
 
 from playwright.async_api import Page
+
 from tavily_scraper.stealth.config import StealthConfig
 
 

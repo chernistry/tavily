@@ -172,7 +172,7 @@ async def create_page_with_blocking(
         if state:
             context_kwargs["storage_state"] = state
 
-    context = await browser.new_context(**context_kwargs)
+    context = await browser.new_context(**context_kwargs)  # type: ignore[arg-type]
 
     async def route_handler(route: Route, request: Request) -> None:
         """
@@ -241,6 +241,54 @@ async def create_page_with_blocking(
 
 
 # ==== HELPER FUNCTIONS ==== #
+
+async def _handle_captcha(
+    page: Page,
+    url: str,
+    content: str,
+    result: FetchResult,
+    ctx: RunnerContext,
+    domain: str,
+) -> tuple[bool, str]:
+    """
+    Handle captcha detection and solving.
+    
+    Returns:
+        (should_return, updated_content): If should_return is True, caller should return immediately.
+    """
+    detection = detect_captcha_http(
+        result.get("http_status") or 0,
+        url,
+        {},
+        content,
+    )
+
+    if not detection["present"]:
+        detection = await detect_captcha_playwright(page)
+
+    if not detection["present"]:
+        return False, content
+
+    # --► CAPTCHA SOLVER HOOK
+    solved = False
+    if ctx.run_config.stealth_config and ctx.run_config.stealth_config.enabled:
+        from tavily_scraper.stealth.captcha import get_solver_from_env
+        solver = get_solver_from_env()
+        solved = await solver.solve(page)
+
+    if not solved:
+        result["captcha_detected"] = True
+        result["status"] = "captcha_detected"
+        result["block_type"] = "captcha"  # type: ignore[typeddict-unknown-key]
+        result["block_vendor"] = detection["vendor"]  # type: ignore[typeddict-unknown-key]
+        ctx.scheduler.record_captcha(domain)
+        ctx.scheduler.release(domain)
+        return True, content
+    
+    # If solved, re-extract content
+    content = await page.content()
+    return False, content
+
 
 async def _handle_navigation(
     page: Page,
@@ -367,41 +415,13 @@ async def fetch_one(
                     ctx.scheduler.release(domain)
                     return result
 
-                # --► CAPTCHA DETECTION (HTTP-level)
-                detection = detect_captcha_http(
-                    result.get("http_status") or 0,
-                    url,
-                    {},
-                    content,
-                )
-
-                # --► CAPTCHA DETECTION (Playwright-level with frames)
-                if not detection["present"]:
-                    detection = await detect_captcha_playwright(page)
-
-                if detection["present"]:
-                    # --► CAPTCHA SOLVER HOOK
-                    solved = False
-                    if ctx.run_config.stealth_config and ctx.run_config.stealth_config.enabled:
-                        from tavily_scraper.stealth.captcha import get_solver_from_env
-
-                        solver = get_solver_from_env()
-                        solved = await solver.solve(page)
-
-                    if not solved:
-                        result["captcha_detected"] = True
-                        result["status"] = "captcha_detected"
-                        result["block_type"] = "captcha"  # type: ignore[typeddict-unknown-key]
-                        result["block_vendor"] = detection["vendor"]  # type: ignore[typeddict-unknown-key]
-                        ctx.scheduler.record_captcha(domain)
-                        ctx.scheduler.release(domain)
-                        return result
-                    
-                    # If solved, we might want to re-extract content or retry navigation
-                    # For now, we assume if solved, we can proceed, but we need to re-read content
-                    content = await page.content()
-                    result["content"] = content
-                    result["content_len"] = len(content.encode("utf-8", errors="ignore"))
+                # --► CAPTCHA DETECTION AND SOLVING
+                should_return, content = await _handle_captcha(page, url, content, result, ctx, domain)
+                if should_return:
+                    return result
+                
+                result["content"] = content
+                result["content_len"] = len(content.encode("utf-8", errors="ignore"))
 
             # ⚠️ NAVIGATION ERROR HANDLING
             except Exception as exc:

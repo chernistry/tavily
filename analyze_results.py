@@ -13,6 +13,7 @@ This script provides comprehensive analysis of stats.jsonl including:
 """
 
 # ==== STANDARD LIBRARY IMPORTS ==== #
+import argparse
 import json
 from collections import Counter
 from pathlib import Path
@@ -35,11 +36,22 @@ def main() -> None:
     Note:
         Exits early if stats file doesn't exist.
     """
-    stats_file = Path("data/stats.jsonl")
+    parser = argparse.ArgumentParser(
+        description="Analyze stats JSONL file for scraping results."
+    )
+    parser.add_argument(
+        "--file",
+        "-f",
+        default="data/stats.jsonl",
+        help="Path to stats JSONL file (default: data/stats.jsonl)",
+    )
+    args = parser.parse_args()
+
+    stats_file = Path(args.file)
 
     # --► FILE EXISTENCE CHECK
     if not stats_file.exists():
-        print("No stats file found. Run the pipeline first.")
+        print(f"No stats file found at {stats_file}. Run the pipeline first.")
         return
 
     # --► LOAD STATISTICS

@@ -9,7 +9,7 @@ import random
 from dataclasses import dataclass
 from functools import lru_cache
 from importlib import resources
-from typing import Any, Dict, List
+from typing import Any
 
 from tavily_scraper.stealth.config import StealthConfig
 
@@ -23,7 +23,7 @@ class DeviceProfile:
     locale: str
     timezone_id: str
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "user_agent": self.user_agent,
@@ -34,7 +34,7 @@ class DeviceProfile:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> DeviceProfile:
+    def from_dict(cls, data: dict[str, Any]) -> DeviceProfile:
         return cls(**data)
 
 
@@ -62,7 +62,7 @@ def _load_json_resource(filename: str) -> Any:
 
 
 @lru_cache(maxsize=1)
-def _device_profiles() -> List[DeviceProfile]:
+def _device_profiles() -> list[DeviceProfile]:
     try:
         raw = _load_json_resource("device_profiles.json")
         return [DeviceProfile(**item) for item in raw]
@@ -85,7 +85,7 @@ def _device_profiles() -> List[DeviceProfile]:
 
 
 @lru_cache(maxsize=1)
-def _geo_profiles() -> List[GeoProfile]:
+def _geo_profiles() -> list[GeoProfile]:
     try:
         raw = _load_json_resource("geolocations.json")
         return [GeoProfile(**item) for item in raw]
@@ -94,7 +94,7 @@ def _geo_profiles() -> List[GeoProfile]:
 
 
 @lru_cache(maxsize=1)
-def _webgl_profiles() -> List[WebGLProfile]:
+def _webgl_profiles() -> list[WebGLProfile]:
     try:
         raw = _load_json_resource("webgl_profiles.json")
         return [WebGLProfile(**item) for item in raw]
@@ -128,7 +128,7 @@ def choose_webgl_profile() -> WebGLProfile:
 def build_context_options(
     config: StealthConfig,
     profile: DeviceProfile | None = None,
-) -> tuple[Dict[str, Any], DeviceProfile]:
+) -> tuple[dict[str, Any], DeviceProfile]:
     """
     Build kwargs for browser.new_context based on a device profile and config.
     Returns the options dict and the profile used.
@@ -145,7 +145,7 @@ def build_context_options(
 
     viewport = {"width": width, "height": height}
 
-    options: Dict[str, Any] = {"viewport": viewport}
+    options: dict[str, Any] = {"viewport": viewport}
 
     if config.spoof_user_agent:
         options["user_agent"] = profile.user_agent

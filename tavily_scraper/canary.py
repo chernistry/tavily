@@ -7,16 +7,23 @@ import logging
 import sys
 from pathlib import Path
 
+# Configure logging
+from typing import Literal
+
 from tavily_scraper.config.env import load_run_config
-from tavily_scraper.core.models import RunConfig
-from tavily_scraper.pipelines.browser_fetcher import browser_lifecycle, create_page_with_blocking
+from tavily_scraper.pipelines.browser_fetcher import (
+    browser_lifecycle,
+    create_page_with_blocking,
+)
 from tavily_scraper.stealth.config import StealthConfig
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("canary")
 
-async def run_canary(headless: bool = True, mode: str = "moderate"):
+async def run_canary(
+    headless: bool = True, 
+    mode: Literal["minimal", "moderate", "aggressive"] = "moderate"
+) -> None:
     """
     Run a canary check against bot.sannysoft.com.
     """
@@ -31,7 +38,6 @@ async def run_canary(headless: bool = True, mode: str = "moderate"):
     )
     
     # We don't need a full proxy manager for this simple check unless testing proxies
-    from tavily_scraper.config.proxies import ProxyManager
     proxy_manager = None # ProxyManager() if needed
 
     results = {

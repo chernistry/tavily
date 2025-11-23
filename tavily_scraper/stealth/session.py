@@ -4,7 +4,7 @@ Session management for persisting browser state (cookies, storage) across runs.
 import json
 import logging
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any
 
 from playwright.async_api import BrowserContext
 
@@ -45,7 +45,7 @@ class SessionManager:
         except Exception as e:
             logger.error(f"Failed to save session '{session_id}': {e}")
 
-    def load_session(self, session_id: str) -> Optional[Dict[str, Any]]:
+    def load_session(self, session_id: str) -> dict[str, Any] | None:
         """
         Load a browser context state from disk.
         Returns None if session does not exist or is invalid.
@@ -59,8 +59,8 @@ class SessionManager:
             return None
 
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                state = json.load(f)
+            with open(path, encoding="utf-8") as f:
+                state: dict[str, Any] = json.load(f)
             logger.info(f"Loaded session '{session_id}' from {path}")
             return state
         except Exception as e:
@@ -72,7 +72,7 @@ class SessionManager:
         safe_id = "".join(c for c in session_id if c.isalnum() or c in ('-', '_'))
         return self.data_dir / f"{safe_id}.profile.json"
 
-    async def save_profile(self, session_id: str, profile_data: Dict[str, Any]) -> None:
+    async def save_profile(self, session_id: str, profile_data: dict[str, Any]) -> None:
         """Save the device profile associated with the session."""
         if not session_id:
             return
@@ -87,7 +87,7 @@ class SessionManager:
         except Exception as e:
             logger.error(f"Failed to save profile for '{session_id}': {e}")
 
-    def load_profile(self, session_id: str) -> Optional[Dict[str, Any]]:
+    def load_profile(self, session_id: str) -> dict[str, Any] | None:
         """Load the device profile associated with the session."""
         if not session_id:
             return None
@@ -97,8 +97,9 @@ class SessionManager:
             return None
             
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                return json.load(f)
+            with open(path, encoding="utf-8") as f:
+                profile: dict[str, Any] = json.load(f)
+                return profile
         except Exception as e:
             logger.warning(f"Failed to load profile for '{session_id}': {e}")
             return None

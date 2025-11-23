@@ -14,6 +14,7 @@ from pathlib import Path
 
 # ==== PROJECT IMPORTS ==== #
 from tavily_scraper.config.env import load_run_config
+from tavily_scraper.core.models import RunSummary
 from tavily_scraper.pipelines.batch_runner import run_batch
 from tavily_scraper.utils.io import load_urls_from_csv
 
@@ -78,26 +79,36 @@ async def main() -> None:
     if config.stealth_config:
         config.stealth_config.enabled = stealth_enabled
 
+    stats_suffix = "_stealth" if stealth_enabled else ""
+
     summary = await run_batch(
         urls,
         config=config,
         max_urls=max_urls,
         target_success=target_success,
         use_browser=use_browser,
+        stats_suffix=stats_suffix,
     )
 
     # --► RESULTS DISPLAY
-    stats_filename = (
-        "stats_stealth.jsonl" if stealth_enabled else "stats.jsonl"
+    stats_filename = f"stats{stats_suffix}.jsonl" if stats_suffix else "stats.jsonl"
+    summary_filename = (
+        f"run_summary{stats_suffix}.json"
+        if stats_suffix
+        else "run_summary.json"
     )
-    _display_results(summary, stats_filename)
+    _display_results(summary, stats_filename, summary_filename)
 
 
 
 
 # ==== RESULTS FORMATTING & DISPLAY ==== #
 
-def _display_results(summary: dict[str, float], stats_filename: str) -> None:
+def _display_results(
+    summary: RunSummary,
+    stats_filename: str,
+    summary_filename: str,
+) -> None:
     """
     Display formatted pipeline execution results.
 
@@ -164,6 +175,7 @@ def _display_results(summary: dict[str, float], stats_filename: str) -> None:
         print(f"  P95: {summary['p95_latency_playwright_ms']}ms")
 
     print(f"\nStats saved to: data/{stats_filename}")
+    print(f"Summary saved to: data/{summary_filename}")
     print(f"{'=' * 60}\n")
 
 

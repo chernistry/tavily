@@ -2,8 +2,8 @@
 Captcha handling interfaces and default implementations.
 """
 
-import os
 import asyncio
+import os
 from typing import Protocol, runtime_checkable
 
 import httpx

@@ -9,9 +9,9 @@ from pathlib import Path
 
 from playwright.async_api import async_playwright
 
+from tavily_scraper.stealth.advanced import apply_advanced_stealth
 from tavily_scraper.stealth.config import StealthConfig
 from tavily_scraper.stealth.core import apply_core_stealth
-from tavily_scraper.stealth.advanced import apply_advanced_stealth
 from tavily_scraper.utils.logging import get_logger
 
 logger = get_logger(__name__)

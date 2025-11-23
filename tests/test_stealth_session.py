@@ -1,11 +1,12 @@
 import json
 import shutil
 import tempfile
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 import pytest
+
 from tavily_scraper.stealth.session import SessionManager
+
 
 class TestSessionManager:
     @pytest.fixture
