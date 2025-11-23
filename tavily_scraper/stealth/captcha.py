@@ -238,7 +238,8 @@ async def _submit_and_poll_2captcha(
             )
             poll_data = poll_resp.json()
             if poll_data.get("status") == 1:
-                return poll_data.get("request")
+                result: str | None = poll_data.get("request")
+                return result
             if poll_data.get("request") != "CAPCHA_NOT_READY":
                 logger.warning(f"2captcha polling error: {poll_data}")
                 return None

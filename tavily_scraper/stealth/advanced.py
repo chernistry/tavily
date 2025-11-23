@@ -233,12 +233,12 @@ async def simulate_network_conditions(
         upload = 250 * 1024  # ~0.25 Mbps
         latency = random.randint(150, 400)
     elif profile == "4g":
-        download = 10 * 1024 * 1024  # ~10 Mbps
-        upload = 3 * 1024 * 1024  # ~3 Mbps
+        download = int(10 * 1024 * 1024)  # ~10 Mbps
+        upload = int(3 * 1024 * 1024)  # ~3 Mbps
         latency = random.randint(20, 80)
     else:  # fast_3g default
-        download = 1.6 * 1024 * 1024  # ~1.6 Mbps
-        upload = 750 * 1024  # ~0.75 Mbps
+        download = int(1.6 * 1024 * 1024)  # ~1.6 Mbps
+        upload = int(750 * 1024)  # ~0.75 Mbps
         latency = random.randint(80, 200)
 
     # CDP session is Chromium-specific; guard in case of future engine changes.
