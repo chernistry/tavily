@@ -1,0 +1,17 @@
+[
+  {
+    "name": "intel_iris",
+    "vendor": "Intel Inc.",
+    "renderer": "Intel Iris OpenGL Engine"
+  },
+  {
+    "name": "amd_radeon",
+    "vendor": "AMD",
+    "renderer": "AMD Radeon Pro"
+  },
+  {
+    "name": "nvidia_gtx",
+    "vendor": "NVIDIA",
+    "renderer": "NVIDIA GeForce GTX"
+  }
+]

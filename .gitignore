@@ -74,7 +74,7 @@ data/
 output/
 results/
 *.csv
-*.json
+# *.json
 !requirements.txt
 !package.json
 !.sdd/raw/*.csv
@@ -87,3 +87,6 @@ proxy.json
 backlog/*
 .ctx/*
 .sdd/drafts/*
+.sdd/backlog/tasks/01.md
+.gitignore
+storage/*
