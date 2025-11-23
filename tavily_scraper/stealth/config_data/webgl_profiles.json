@@ -1,17 +1,62 @@
 [
   {
-    "name": "intel_iris",
+    "name": "intel_iris_xe",
     "vendor": "Intel Inc.",
-    "renderer": "Intel Iris OpenGL Engine"
+    "renderer": "Intel(R) Iris(R) Xe Graphics"
   },
   {
-    "name": "amd_radeon",
+    "name": "intel_uhd_630",
+    "vendor": "Intel Inc.",
+    "renderer": "Intel(R) UHD Graphics 630"
+  },
+  {
+    "name": "amd_radeon_rx_7000",
     "vendor": "AMD",
-    "renderer": "AMD Radeon Pro"
+    "renderer": "AMD Radeon RX 7900 XT"
   },
   {
-    "name": "nvidia_gtx",
-    "vendor": "NVIDIA",
-    "renderer": "NVIDIA GeForce GTX"
+    "name": "amd_radeon_pro_5500m",
+    "vendor": "AMD",
+    "renderer": "AMD Radeon Pro 5500M"
+  },
+  {
+    "name": "nvidia_rtx_4090",
+    "vendor": "NVIDIA Corporation",
+    "renderer": "NVIDIA GeForce RTX 4090/PCIe/SSE2"
+  },
+  {
+    "name": "nvidia_rtx_4070",
+    "vendor": "NVIDIA Corporation",
+    "renderer": "NVIDIA GeForce RTX 4070/PCIe/SSE2"
+  },
+  {
+    "name": "nvidia_rtx_3060",
+    "vendor": "NVIDIA Corporation",
+    "renderer": "NVIDIA GeForce RTX 3060/PCIe/SSE2"
+  },
+  {
+    "name": "apple_m3",
+    "vendor": "Apple",
+    "renderer": "Apple M3"
+  },
+  {
+    "name": "apple_m2",
+    "vendor": "Apple",
+    "renderer": "Apple M2"
+  },
+  {
+    "name": "apple_m1",
+    "vendor": "Apple",
+    "renderer": "Apple M1"
+  },
+  {
+    "name": "intel_arc_a770",
+    "vendor": "Intel Inc.",
+    "renderer": "Intel(R) Arc(TM) A770 Graphics"
+  },
+  {
+    "name": "mesa_llvmpipe",
+    "vendor": "Mesa",
+    "renderer": "llvmpipe (LLVM 15.0.0, 256 bits)"
   }
 ]

@@ -12,15 +12,81 @@
     "accuracy": 60
   },
   {
+    "name": "san_francisco",
+    "latitude": 37.7749,
+    "longitude": -122.4194,
+    "accuracy": 55
+  },
+  {
+    "name": "chicago",
+    "latitude": 41.8781,
+    "longitude": -87.6298,
+    "accuracy": 50
+  },
+  {
+    "name": "seattle",
+    "latitude": 47.6062,
+    "longitude": -122.3321,
+    "accuracy": 60
+  },
+  {
+    "name": "austin",
+    "latitude": 30.2672,
+    "longitude": -97.7431,
+    "accuracy": 55
+  },
+  {
+    "name": "london",
+    "latitude": 51.5074,
+    "longitude": -0.1278,
+    "accuracy": 45
+  },
+  {
     "name": "berlin",
     "latitude": 52.52,
     "longitude": 13.405,
     "accuracy": 40
   },
   {
-    "name": "san_francisco",
-    "latitude": 37.7749,
-    "longitude": -122.4194,
+    "name": "paris",
+    "latitude": 48.8566,
+    "longitude": 2.3522,
+    "accuracy": 45
+  },
+  {
+    "name": "amsterdam",
+    "latitude": 52.3676,
+    "longitude": 4.9041,
+    "accuracy": 40
+  },
+  {
+    "name": "toronto",
+    "latitude": 43.6532,
+    "longitude": -79.3832,
+    "accuracy": 50
+  },
+  {
+    "name": "sydney",
+    "latitude": -33.8688,
+    "longitude": 151.2093,
     "accuracy": 60
+  },
+  {
+    "name": "tokyo",
+    "latitude": 35.6762,
+    "longitude": 139.6503,
+    "accuracy": 50
+  },
+  {
+    "name": "singapore",
+    "latitude": 1.3521,
+    "longitude": 103.8198,
+    "accuracy": 45
+  },
+  {
+    "name": "mumbai",
+    "latitude": 19.076,
+    "longitude": 72.8777,
+    "accuracy": 65
   }
 ]
