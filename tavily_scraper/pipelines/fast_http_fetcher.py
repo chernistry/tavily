@@ -132,6 +132,7 @@ def make_http_client(
         timeout=timeout,
         limits=limits,
         proxy=proxy,
+        verify=False,  # Disable SSL verification for sites with certificate issues
     )
 
 

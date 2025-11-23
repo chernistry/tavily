@@ -203,8 +203,8 @@ async def make_robots_client(
     if proxy_config is not None:
         proxy_manager = ProxyManager.from_proxy_config(proxy_config)
         proxy_url = proxy_manager.httpx_proxy()
-        client = httpx.AsyncClient(follow_redirects=True, proxy=proxy_url)
+        client = httpx.AsyncClient(follow_redirects=True, proxy=proxy_url, verify=False)
     else:
-        client = httpx.AsyncClient(follow_redirects=True)
+        client = httpx.AsyncClient(follow_redirects=True, verify=False)
 
     return RobotsClient(client=client)
