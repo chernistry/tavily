@@ -159,8 +159,17 @@ async def create_page_with_blocking(
     page = await context.new_page()
 
     if run_config.stealth_config and run_config.stealth_config.enabled:
+        from tavily_scraper.stealth.advanced import (
+            apply_advanced_stealth,
+            simulate_network_conditions,
+        )
         from tavily_scraper.stealth.core import apply_core_stealth
+
         await apply_core_stealth(page, run_config.stealth_config)
+        await apply_advanced_stealth(page, run_config.stealth_config)
+        
+        if run_config.stealth_config.mode == "aggressive":
+            await simulate_network_conditions(page)
 
     return page
 
@@ -281,13 +290,28 @@ async def fetch_one(
                     detection = await detect_captcha_playwright(page)
 
                 if detection["present"]:
-                    result["captcha_detected"] = True
-                    result["status"] = "captcha_detected"
-                    result["block_type"] = "captcha"  # type: ignore[typeddict-unknown-key]
-                    result["block_vendor"] = detection["vendor"]  # type: ignore[typeddict-unknown-key]
-                    ctx.scheduler.record_captcha(domain)
-                    ctx.scheduler.release(domain)
-                    return result
+                    # --► CAPTCHA SOLVER HOOK
+                    solved = False
+                    if ctx.run_config.stealth_config and ctx.run_config.stealth_config.enabled:
+                        from tavily_scraper.stealth.captcha import NoOpSolver
+                        # In the future, we can load a specific solver from config
+                        solver = NoOpSolver()
+                        solved = await solver.solve(page)
+
+                    if not solved:
+                        result["captcha_detected"] = True
+                        result["status"] = "captcha_detected"
+                        result["block_type"] = "captcha"  # type: ignore[typeddict-unknown-key]
+                        result["block_vendor"] = detection["vendor"]  # type: ignore[typeddict-unknown-key]
+                        ctx.scheduler.record_captcha(domain)
+                        ctx.scheduler.release(domain)
+                        return result
+                    
+                    # If solved, we might want to re-extract content or retry navigation
+                    # For now, we assume if solved, we can proceed, but we need to re-read content
+                    content = await page.content()
+                    result["content"] = content
+                    result["content_len"] = len(content.encode("utf-8", errors="ignore"))
 
             # ⚠️ NAVIGATION ERROR HANDLING
             except Exception as exc:
