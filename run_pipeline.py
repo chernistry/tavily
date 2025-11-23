@@ -38,18 +38,39 @@ async def main() -> None:
         SystemExit: If invalid arguments are provided
     """
     # --► ARGUMENT PARSING
-    if len(sys.argv) < 2:
-        print_usage()
-        return
-
-    target: int = int(sys.argv[1])
     use_browser: bool = "--browser" in sys.argv
     use_random: bool = "--random" in sys.argv
     target_mode: bool = "--success" in sys.argv
     stealth_enabled: bool = "--stealth" in sys.argv
+    
+    # Parse --urls
+    urls_file: Path = Path(".sdd/raw/urls.csv")
+    if "--urls" in sys.argv:
+        idx = sys.argv.index("--urls")
+        if idx + 1 < len(sys.argv):
+            urls_file = Path(sys.argv[idx + 1])
+    
+    # Parse --count
+    target: int | None = None
+    if "--count" in sys.argv:
+        idx = sys.argv.index("--count")
+        if idx + 1 < len(sys.argv):
+            target = int(sys.argv[idx + 1])
+    elif len(sys.argv) >= 2 and sys.argv[1].isdigit():
+        target = int(sys.argv[1])
+    
+    # Parse --stats-suffix
+    custom_suffix: str | None = None
+    if "--stats-suffix" in sys.argv:
+        idx = sys.argv.index("--stats-suffix")
+        if idx + 1 < len(sys.argv):
+            custom_suffix = sys.argv[idx + 1]
+    
+    if target is None and not urls_file.exists():
+        print_usage()
+        return
 
     # --► URL LOADING & PREPARATION
-    urls_file: Path = Path(".sdd/raw/urls.csv")
     urls: list[str] = load_urls_from_csv(urls_file)
     print(f"Loaded {len(urls)} URLs from {urls_file}")
 
@@ -61,13 +82,17 @@ async def main() -> None:
     max_urls: int | None
     target_success: int | None
 
-    if target_mode:
+    if target_mode and target:
         print(f"Mode: Process until {target} SUCCESSFUL URLs")
         max_urls = None
         target_success = target
-    else:
+    elif target:
         print(f"Mode: Process {target} URLs total")
         max_urls = target
+        target_success = None
+    else:
+        print(f"Mode: Process all URLs from {urls_file}")
+        max_urls = None
         target_success = None
 
     print(f"Browser fallback: {'enabled' if use_browser else 'disabled'}")
@@ -79,11 +104,17 @@ async def main() -> None:
     if config.stealth_config:
         config.stealth_config.enabled = stealth_enabled
 
-    stats_suffix = "_stealth" if stealth_enabled else ""
+    # Determine stats suffix
+    if custom_suffix:
+        stats_suffix = custom_suffix
+    elif stealth_enabled:
+        stats_suffix = "_stealth"
+    else:
+        stats_suffix = ""
 
     summary = await run_batch(
         urls,
-        config=config,
+        config,
         max_urls=max_urls,
         target_success=target_success,
         use_browser=use_browser,
@@ -193,23 +224,23 @@ def print_usage() -> None:
     print(
         """
 Usage:
-  python run_pipeline.py <number> [--success] [--browser] [--random] [--stealth]
-
-Modes:
-  <number>           Process N URLs total (default)
-  <number> --success Process until N successful URLs
+  python run_pipeline.py [--count N] [--urls FILE] [OPTIONS]
 
 Options:
-  --browser          Enable Playwright browser fallback for failed HTTP requests
-  --random           Shuffle URLs randomly before processing
-  --stealth          Enable stealth profile (anti-detection techniques)
+  --count N              Process N URLs total (or use positional: python run_pipeline.py 100)
+  --urls FILE            Use custom URLs file (default: .sdd/raw/urls.csv)
+  --success              Process until N successful URLs (requires --count)
+  --browser              Enable Playwright browser fallback
+  --random               Shuffle URLs randomly
+  --stealth              Enable stealth anti-detection
+  --stats-suffix SUFFIX  Custom suffix for stats files
 
 Examples:
-  python run_pipeline.py 100                    # Process 100 URLs (HTTP only)
-  python run_pipeline.py 100 --browser          # Process 100 URLs (with browser)
-  python run_pipeline.py 100 --random           # Process 100 random URLs
-  python run_pipeline.py 50 --success           # Process until 50 successful
-  python run_pipeline.py 1000 --success --browser --random  # Full featured
+  python run_pipeline.py 100                              # Process 100 URLs
+  python run_pipeline.py --count 100 --stealth            # With stealth
+  python run_pipeline.py --urls failed.csv                # Custom file
+  python run_pipeline.py --urls failed.csv --stats-suffix _test  # Custom suffix
+  python run_pipeline.py 50 --success --browser           # Until 50 successes
 """
     )
 
