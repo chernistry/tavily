@@ -226,8 +226,27 @@ async def create_page_with_blocking(
         await apply_core_stealth(page, run_config.stealth_config)
         await apply_advanced_stealth(page, run_config.stealth_config)
 
-        if run_config.stealth_config.mode == "aggressive":
-            await simulate_network_conditions(page, profile="fast_3g")
+        if run_config.stealth_config.mode == "aggressive" or run_config.stealth_config.network_profile != "wifi":
+            await simulate_network_conditions(page, profile=run_config.stealth_config.network_profile)
+
+        # Background traffic simulation
+        if run_config.stealth_config.fake_background_traffic:
+            # Inject a small script to fetch random safe resources
+            # We use a safe list of CDNs or common assets
+            await page.evaluate("""() => {
+                const urls = [
+                    "https://fonts.googleapis.com/css?family=Roboto",
+                    "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js",
+                    "https://www.google-analytics.com/analytics.js",
+                    "https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+                ];
+                // Pick 1-2 random URLs to fetch in background
+                const count = Math.floor(Math.random() * 2) + 1;
+                for(let i=0; i<count; i++) {
+                    const url = urls[Math.floor(Math.random() * urls.length)];
+                    fetch(url, {mode: 'no-cors'}).catch(() => {});
+                }
+            }""")
 
         # Optional viewport jitter early in the session
         if run_config.stealth_config.viewport_jitter:
@@ -311,8 +330,8 @@ async def _handle_navigation(
                     human_mouse_move,
                     human_scroll,
                 )
-                await human_mouse_move(page)
-                await human_scroll(page)
+                await human_mouse_move(page, config=ctx.run_config.stealth_config)
+                await human_scroll(page, config=ctx.run_config.stealth_config)
 
         # --► RESPONSE STATUS CLASSIFICATION
         if response:

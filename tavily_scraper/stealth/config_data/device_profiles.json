@@ -5,7 +5,8 @@
     "viewport_width": 1920,
     "viewport_height": 1080,
     "locale": "en-US",
-    "timezone_id": "America/New_York"
+    "timezone_id": "America/New_York",
+    "region": "US"
   },
   {
     "name": "desktop_chrome_mac_m3",
@@ -13,7 +14,8 @@
     "viewport_width": 1440,
     "viewport_height": 900,
     "locale": "en-US",
-    "timezone_id": "America/Los_Angeles"
+    "timezone_id": "America/Los_Angeles",
+    "region": "US"
   },
   {
     "name": "desktop_firefox_win11",
@@ -21,7 +23,8 @@
     "viewport_width": 1920,
     "viewport_height": 1080,
     "locale": "en-US",
-    "timezone_id": "America/Chicago"
+    "timezone_id": "America/Chicago",
+    "region": "US"
   },
   {
     "name": "desktop_edge_win11",
@@ -29,7 +32,8 @@
     "viewport_width": 1920,
     "viewport_height": 1080,
     "locale": "en-US",
-    "timezone_id": "America/New_York"
+    "timezone_id": "America/New_York",
+    "region": "US"
   },
   {
     "name": "desktop_safari_mac",
@@ -37,7 +41,8 @@
     "viewport_width": 1440,
     "viewport_height": 900,
     "locale": "en-US",
-    "timezone_id": "America/Los_Angeles"
+    "timezone_id": "America/Los_Angeles",
+    "region": "US"
   },
   {
     "name": "desktop_chrome_linux",
@@ -45,7 +50,8 @@
     "viewport_width": 1920,
     "viewport_height": 1080,
     "locale": "en-US",
-    "timezone_id": "America/Denver"
+    "timezone_id": "America/Denver",
+    "region": "US"
   },
   {
     "name": "desktop_chrome_4k",
@@ -53,7 +59,8 @@
     "viewport_width": 2560,
     "viewport_height": 1440,
     "locale": "en-US",
-    "timezone_id": "America/New_York"
+    "timezone_id": "America/New_York",
+    "region": "US"
   },
   {
     "name": "desktop_chrome_uk",
@@ -61,7 +68,8 @@
     "viewport_width": 1920,
     "viewport_height": 1080,
     "locale": "en-GB",
-    "timezone_id": "Europe/London"
+    "timezone_id": "Europe/London",
+    "region": "EU"
   },
   {
     "name": "desktop_chrome_de",
@@ -69,7 +77,8 @@
     "viewport_width": 1920,
     "viewport_height": 1080,
     "locale": "de-DE",
-    "timezone_id": "Europe/Berlin"
+    "timezone_id": "Europe/Berlin",
+    "region": "EU"
   },
   {
     "name": "desktop_firefox_mac",
@@ -77,6 +86,7 @@
     "viewport_width": 1440,
     "viewport_height": 900,
     "locale": "en-US",
-    "timezone_id": "America/Los_Angeles"
+    "timezone_id": "America/Los_Angeles",
+    "region": "US"
   }
 ]

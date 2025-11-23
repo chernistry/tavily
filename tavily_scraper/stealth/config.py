@@ -55,3 +55,6 @@ class StealthConfig(msgspec.Struct, omit_defaults=True):
     mask_webrtc: bool = True
     random_geolocation: bool = False
     viewport_jitter: bool = True
+    behavior_profile: Literal["minimal", "default", "aggressive"] = "default"
+    network_profile: Literal["wifi", "dsl", "4g", "fast_3g", "slow_3g"] = "wifi"
+    fake_background_traffic: bool = False

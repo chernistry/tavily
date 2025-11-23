@@ -50,7 +50,7 @@ async def apply_advanced_stealth(page: Page, config: StealthConfig) -> None:
 
 async def simulate_network_conditions(
     page: Page,
-    profile: Literal["fast_3g", "slow_3g", "4g"] = "fast_3g",
+    profile: Literal["wifi", "dsl", "4g", "fast_3g", "slow_3g"] = "wifi",
 ) -> None:
     """
     Simulate realistic network conditions (throttling).
@@ -63,17 +63,25 @@ async def simulate_network_conditions(
         return
 
     if profile == "slow_3g":
-        download = 750 * 1024  # ~0.75 Mbps
-        upload = 250 * 1024  # ~0.25 Mbps
-        latency = random.randint(150, 400)
+        download = 400 * 1024
+        upload = 150 * 1024
+        latency = random.randint(400, 600)
+    elif profile == "fast_3g":
+        download = int(1.6 * 1024 * 1024)
+        upload = int(750 * 1024)
+        latency = random.randint(150, 300)
     elif profile == "4g":
-        download = int(10 * 1024 * 1024)  # ~10 Mbps
-        upload = int(3 * 1024 * 1024)  # ~3 Mbps
-        latency = random.randint(20, 80)
-    else:  # fast_3g default
-        download = int(1.6 * 1024 * 1024)  # ~1.6 Mbps
-        upload = int(750 * 1024)  # ~0.75 Mbps
-        latency = random.randint(80, 200)
+        download = int(12 * 1024 * 1024)
+        upload = int(4 * 1024 * 1024)
+        latency = random.randint(50, 100)
+    elif profile == "dsl":
+        download = int(5 * 1024 * 1024)
+        upload = int(1 * 1024 * 1024)
+        latency = random.randint(30, 70)
+    else:  # wifi (default)
+        download = int(30 * 1024 * 1024)
+        upload = int(15 * 1024 * 1024)
+        latency = random.randint(10, 40)
 
     # CDP session is Chromium-specific; guard in case of future engine changes.
     try:
