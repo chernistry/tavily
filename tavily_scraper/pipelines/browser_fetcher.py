@@ -125,7 +125,15 @@ async def create_page_with_blocking(
         - Page load time
         - Memory consumption
     """
-    context = await browser.new_context()
+    context_kwargs: dict[str, object] = {}
+
+    # Configure context with more realistic fingerprints when stealth is on.
+    if run_config.stealth_config and run_config.stealth_config.enabled:
+        from tavily_scraper.stealth.device_profiles import build_context_options
+
+        context_kwargs = build_context_options(run_config.stealth_config)
+
+    context = await browser.new_context(**context_kwargs)
 
     async def route_handler(route: Route, request: Request) -> None:
         """
@@ -140,8 +148,13 @@ async def create_page_with_blocking(
         """
         url = request.url
 
-        # Block heavy static assets
-        if any(
+        # Block heavy static assets when allowed by stealth config.
+        should_block = (
+            run_config.stealth_config is None
+            or run_config.stealth_config.block_resources
+        )
+
+        if should_block and any(
             url.endswith(ext)
             for ext in (
                 ".png",
@@ -172,9 +185,9 @@ async def create_page_with_blocking(
 
         await apply_core_stealth(page, run_config.stealth_config)
         await apply_advanced_stealth(page, run_config.stealth_config)
-        
+
         if run_config.stealth_config.mode == "aggressive":
-            await simulate_network_conditions(page)
+            await simulate_network_conditions(page, profile="fast_3g")
 
     return page
 

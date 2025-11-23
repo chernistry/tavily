@@ -1,8 +1,10 @@
 """
-Advanced stealth techniques including fingerprinting resistance and network simulation.
+Advanced stealth techniques including fingerprinting resistance and
+network simulation.
 """
 
 import random
+from typing import Literal
 
 from playwright.async_api import Page
 
@@ -12,80 +14,179 @@ from tavily_scraper.stealth.config import StealthConfig
 async def apply_advanced_stealth(page: Page, config: StealthConfig) -> None:
     """
     Apply advanced stealth techniques to the page.
+
+    This focuses on:
+    * Canvas and WebGL tweaks to make fingerprinting less stable
+    * AudioContext noise to reduce audio fingerprint reliability
+
+    These techniques are more invasive than the core ones and should only be
+    enabled when needed (typically in "moderate" or "aggressive" modes).
     """
-    if not config.enabled:
+    if not (config.enabled and config.fingerprint_evasions):
         return
 
-    # Canvas Noise Injection
+    # Canvas noise injection – inspired by common stealth plugins. We add a tiny
+    # amount of noise to a subset of pixels so that exact fingerprints differ
+    # across runs, but visual output is unaffected for normal users.
     await page.add_init_script(
         """
-        const toBlob = HTMLCanvasElement.prototype.toBlob;
-        const toDataURL = HTMLCanvasElement.prototype.toDataURL;
-        const getImageData = CanvasRenderingContext2D.prototype.getImageData;
+        (() => {
+          try {
+            if (HTMLCanvasElement.prototype.__tavily_canvas_patched__) {
+              return;
+            }
+            HTMLCanvasElement.prototype.__tavily_canvas_patched__ = true;
 
-        // Add random noise to canvas exports
-        var noise = {
-            r: Math.floor(Math.random() * 10) - 5,
-            g: Math.floor(Math.random() * 10) - 5,
-            b: Math.floor(Math.random() * 10) - 5,
-            a: Math.floor(Math.random() * 10) - 5
-        };
+            const originalGetImageData =
+              CanvasRenderingContext2D.prototype.getImageData;
 
-        const shift = (val) => val + Math.floor(Math.random() * 2) - 1;
-
-        HTMLCanvasElement.prototype.toBlob = function(callback, type, quality) {
-            return toBlob.call(this, callback, type, quality);
-        };
-
-        HTMLCanvasElement.prototype.toDataURL = function(type, quality) {
-            return toDataURL.call(this, type, quality);
-        };
-
-        CanvasRenderingContext2D.prototype.getImageData = function(x, y, w, h) {
-            const imageData = getImageData.call(this, x, y, w, h);
-            // Simple noise injection could be added here if needed
-            // For now, we just override to prevent exact fingerprinting
-            return imageData;
-        };
+            CanvasRenderingContext2D.prototype.getImageData = function(x, y, w, h) {
+              const imageData = originalGetImageData.call(this, x, y, w, h);
+              try {
+                const { data } = imageData;
+                // Nudge every Nth pixel very slightly
+                for (let i = 0; i < data.length; i += 4 * 10) {
+                  data[i] = data[i] ^ 0x01;       // R
+                  data[i + 1] = data[i + 1] ^ 0x01; // G
+                  data[i + 2] = data[i + 2] ^ 0x01; // B
+                }
+              } catch (e) {
+                // Swallow – worst case we return original data
+              }
+              return imageData;
+            };
+          } catch (e) {
+            // Do nothing if canvas is non-standard
+          }
+        })();
         """
     )
 
-    # WebGL Vendor Spoofing
+    # WebGL vendor spoofing – normalize to a common vendor/renderer combo.
     await page.add_init_script(
         """
-        const getParameter = WebGLRenderingContext.prototype.getParameter;
-        WebGLRenderingContext.prototype.getParameter = function(parameter) {
-            // UNMASKED_VENDOR_WEBGL
-            if (parameter === 37445) {
-                return 'Intel Inc.';
+        (() => {
+          try {
+            const patchContext = (WebGLClass) => {
+              if (!WebGLClass || WebGLClass.prototype.__tavily_webgl_patched__) {
+                return;
+              }
+              WebGLClass.prototype.__tavily_webgl_patched__ = true;
+
+              const getParameter = WebGLClass.prototype.getParameter;
+              WebGLClass.prototype.getParameter = function(parameter) {
+                try {
+                  const debugInfo = this.getExtension &&
+                    this.getExtension('WEBGL_debug_renderer_info');
+                  if (debugInfo) {
+                    if (parameter === debugInfo.UNMASKED_VENDOR_WEBGL) {
+                      return 'Intel Inc.';
+                    }
+                    if (parameter === debugInfo.UNMASKED_RENDERER_WEBGL) {
+                      return 'Intel Iris OpenGL Engine';
+                    }
+                  }
+                  // Fallback magic numbers for UNMASKED_VENDOR/RENDERER
+                  if (parameter === 37445) {
+                    return 'Intel Inc.';
+                  }
+                  if (parameter === 37446) {
+                    return 'Intel Iris OpenGL Engine';
+                  }
+                } catch (e) {
+                  // If anything goes wrong, fall through to original
+                }
+                return getParameter.call(this, parameter);
+              };
+            };
+
+            if (typeof WebGLRenderingContext !== 'undefined') {
+              patchContext(WebGLRenderingContext);
             }
-            // UNMASKED_RENDERER_WEBGL
-            if (parameter === 37446) {
-                return 'Intel Iris OpenGL Engine';
+            if (typeof WebGL2RenderingContext !== 'undefined') {
+              patchContext(WebGL2RenderingContext);
             }
-            return getParameter.call(this, parameter);
-        };
+          } catch (e) {
+            // Leave WebGL untouched if environment differs
+          }
+        })();
+        """
+    )
+
+    # AudioContext fingerprinting is increasingly used. We add subtle noise to
+    # the returned channel data to make fingerprints less stable.
+    await page.add_init_script(
+        """
+        (() => {
+          try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx || AudioCtx.prototype.__tavily_audio_patched__) {
+              return;
+            }
+            AudioCtx.prototype.__tavily_audio_patched__ = true;
+
+            const originalGetChannelData = AudioCtx.prototype.getChannelData;
+
+            AudioCtx.prototype.getChannelData = function() {
+              const results = originalGetChannelData.apply(this, arguments);
+              try {
+                const len = results.length;
+                const stride = Math.max(1, Math.floor(len / 500));
+                for (let i = 0; i < len; i += stride) {
+                  results[i] = results[i] + (Math.random() - 0.5) * 1e-7;
+                }
+              } catch (e) {
+                // Ignore if typed arrays behave unexpectedly
+              }
+              return results;
+            };
+          } catch (e) {
+            // No-op if AudioContext is unavailable
+          }
+        })();
         """
     )
 
 
-async def simulate_network_conditions(page: Page) -> None:
+async def simulate_network_conditions(
+    page: Page,
+    profile: Literal["fast_3g", "slow_3g", "4g"] = "fast_3g",
+) -> None:
     """
     Simulate realistic network conditions (throttling).
-    """
-    # Randomize network conditions slightly
-    # Fast 3G to 4G speeds
-    download = random.randint(2 * 1024 * 1024, 10 * 1024 * 1024)  # 2-10 Mbps
-    upload = random.randint(500 * 1024, 2 * 1024 * 1024)          # 0.5-2 Mbps
-    latency = random.randint(20, 100)                             # 20-100ms
 
-    client = await page.context.new_cdp_session(page)
-    await client.send(
-        "Network.emulateNetworkConditions",
-        {
-            "offline": False,
-            "latency": latency,
-            "downloadThroughput": download,
-            "uploadThroughput": upload,
-        },
-    )
+    We use a small set of coarse profiles rather than fully random values so
+    that behavior is realistic but still varied across runs.
+    """
+
+    if not page.context:
+        return
+
+    if profile == "slow_3g":
+        download = 750 * 1024  # ~0.75 Mbps
+        upload = 250 * 1024  # ~0.25 Mbps
+        latency = random.randint(150, 400)
+    elif profile == "4g":
+        download = 10 * 1024 * 1024  # ~10 Mbps
+        upload = 3 * 1024 * 1024  # ~3 Mbps
+        latency = random.randint(20, 80)
+    else:  # fast_3g default
+        download = 1.6 * 1024 * 1024  # ~1.6 Mbps
+        upload = 750 * 1024  # ~0.75 Mbps
+        latency = random.randint(80, 200)
+
+    # CDP session is Chromium-specific; guard in case of future engine changes.
+    try:
+        client = await page.context.new_cdp_session(page)
+        await client.send(
+            "Network.emulateNetworkConditions",
+            {
+                "offline": False,
+                "latency": latency,
+                "downloadThroughput": int(download),
+                "uploadThroughput": int(upload),
+            },
+        )
+    except Exception:
+        # If emulation fails, we simply continue without throttling.
+        return

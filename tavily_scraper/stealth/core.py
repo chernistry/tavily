@@ -11,6 +11,14 @@ async def apply_core_stealth(page: Page, config: StealthConfig) -> None:
     """
     Apply core stealth techniques to the page.
 
+    This focuses on:
+    * Hiding obvious automation flags (navigator.webdriver, window.chrome)
+    * Normalizing navigator properties (languages, plugins, hardware hints)
+    * Making the permissions API behave like a real browser
+
+    All scripts are defensive: they swallow their own errors so we never break
+    the page if a browser/vendor changes something.
+
     Args:
         page: Playwright page instance.
         config: Stealth configuration.
@@ -18,51 +26,126 @@ async def apply_core_stealth(page: Page, config: StealthConfig) -> None:
     if not config.enabled:
         return
 
+    # --- navigator.webdriver and basic automation flags ---
     if config.spoof_webdriver:
         await page.add_init_script(
             """
-            if (Object.getPrototypeOf(navigator).webdriver) {
-                delete Object.getPrototypeOf(navigator).webdriver;
-            }
-            Object.defineProperty(navigator, 'webdriver', {
-                get: () => undefined
-            });
+            (() => {
+              try {
+                // Remove existing webdriver flags on the prototype and instance
+                const proto = Object.getPrototypeOf(navigator);
+                if (proto && Object.prototype.hasOwnProperty.call(proto, 'webdriver')) {
+                  delete proto.webdriver;
+                }
+                if (Object.prototype.hasOwnProperty.call(navigator, 'webdriver')) {
+                  delete navigator.webdriver;
+                }
+
+                Object.defineProperty(navigator, 'webdriver', {
+                  get: () => undefined,
+                  configurable: true,
+                });
+
+                // Some detectors check for window.chrome + runtime
+                if (!window.chrome) {
+                  window.chrome = { runtime: {} };
+                } else if (!window.chrome.runtime) {
+                  window.chrome.runtime = {};
+                }
+              } catch (e) {
+                // Never let stealth patches break the page
+              }
+            })();
             """
         )
 
+    # --- navigator languages, plugins, and basic hardware hints ---
     if config.spoof_user_agent:
-        # Note: Playwright handles UA via context, but we can override/ensure here
-        # or add more specific navigator property mocks if needed.
-        # For now, we rely on the context-level UA string, but we can add
-        # platform spoofing to match UA.
         await page.add_init_script(
             """
-            // Mock languages to look like a normal user
-            Object.defineProperty(navigator, 'languages', {
-                get: () => ['en-US', 'en']
-            });
+            (() => {
+              try {
+                // Languages
+                Object.defineProperty(navigator, 'languages', {
+                  get: () => ['en-US', 'en'],
+                  configurable: true,
+                });
 
-            // Mock plugins to look like a normal browser (deprecated but checked by some)
-            Object.defineProperty(navigator, 'plugins', {
-                get: () => [1, 2, 3, 4, 5]
-            });
+                // Basic plugin array stub
+                const makePlugins = () => {
+                  const plugins = [
+                    { name: 'Chrome PDF Plugin' },
+                    { name: 'Chrome PDF Viewer' },
+                    { name: 'Native Client' },
+                  ];
+                  const pluginArray = {
+                    length: plugins.length,
+                    item: (index) => plugins[index] || null,
+                    namedItem: (name) => plugins.find(p => p.name === name) || null,
+                  };
+                  plugins.forEach((p, i) => {
+                    Object.defineProperty(pluginArray, i, {
+                      value: p,
+                      enumerable: true,
+                    });
+                  });
+                  return pluginArray;
+                };
+
+                Object.defineProperty(navigator, 'plugins', {
+                  get: () => makePlugins(),
+                  configurable: true,
+                });
+
+                // Normalize a couple of hardware hints
+                if (!('hardwareConcurrency' in navigator)) {
+                  Object.defineProperty(navigator, 'hardwareConcurrency', {
+                    get: () => 8,
+                    configurable: true,
+                  });
+                }
+                if (!('deviceMemory' in navigator)) {
+                  Object.defineProperty(navigator, 'deviceMemory', {
+                    get: () => 8,
+                    configurable: true,
+                  });
+                }
+              } catch (e) {
+                // Defensive: ignore if environment differs
+              }
+            })();
             """
         )
 
-    # Hide automation flags
+    # --- Permissions API normalization ---
     await page.add_init_script(
         """
-        // Pass the "Chrome" test
-        window.chrome = {
-            runtime: {}
-        };
+        (() => {
+          try {
+            const permissions = window.navigator.permissions;
+            if (!permissions || !permissions.query) {
+              return;
+            }
 
-        // Pass the "Permissions" test
-        const originalQuery = window.navigator.permissions.query;
-        window.navigator.permissions.query = (parameters) => (
-            parameters.name === 'notifications' ?
-            Promise.resolve({ state: Notification.permission }) :
-            originalQuery(parameters)
-        );
+            const originalQuery = permissions.query.bind(permissions);
+
+            permissions.query = (parameters) => {
+              try {
+                if (parameters && parameters.name === 'notifications') {
+                  const defaultState = (typeof Notification !== 'undefined' &&
+                    Notification.permission) || 'default';
+                  return Promise.resolve({ state: defaultState });
+                }
+                return originalQuery(parameters);
+              } catch (e) {
+                const fallbackState = (typeof Notification !== 'undefined' &&
+                  Notification.permission) || 'default';
+                return Promise.resolve({ state: fallbackState });
+              }
+            };
+          } catch (e) {
+            // Do nothing if permissions API behaves differently
+          }
+        })();
         """
     )
