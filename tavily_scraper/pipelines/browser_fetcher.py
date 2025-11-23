@@ -129,16 +129,45 @@ async def create_page_with_blocking(
 
     # Configure context with more realistic fingerprints when stealth is on.
     if run_config.stealth_config and run_config.stealth_config.enabled:
-        from tavily_scraper.stealth.device_profiles import build_context_options
+        from tavily_scraper.stealth.device_profiles import (
+            DeviceProfile,
+            build_context_options,
+        )
 
-        context_kwargs = build_context_options(run_config.stealth_config)
+        # --► PROFILE LOADING
+        profile: DeviceProfile | None = None
+        session_manager = None
+        
+        if run_config.session_id:
+            from tavily_scraper.stealth.session import SessionManager
+            session_manager = SessionManager()
+            profile_data = session_manager.load_profile(run_config.session_id)
+            if profile_data:
+                try:
+                    profile = DeviceProfile.from_dict(profile_data)
+                except Exception as e:
+                    logger.warning(f"Failed to parse profile: {e}")
+
+        context_kwargs, used_profile = build_context_options(
+            run_config.stealth_config, 
+            profile=profile
+        )
+        
+        # --► PROFILE SAVING (if new session or profile changed)
+        if session_manager and run_config.session_id and not profile:
+            await session_manager.save_profile(
+                run_config.session_id, 
+                used_profile.to_dict()
+            )
+
     else:
         context_kwargs = {}
 
-    # --► SESSION LOADING
+    # --► SESSION LOADING (Storage State)
     if run_config.session_id:
         from tavily_scraper.stealth.session import SessionManager
-        session_manager = SessionManager()
+        if not session_manager:
+            session_manager = SessionManager()
         state = session_manager.load_session(run_config.session_id)
         if state:
             context_kwargs["storage_state"] = state

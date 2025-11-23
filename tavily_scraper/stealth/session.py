@@ -64,6 +64,9 @@ class SessionManager:
             logger.info(f"Loaded session '{session_id}' from {path}")
             return state
         except Exception as e:
+            logger.warning(f"Failed to load session '{session_id}', starting fresh: {e}")
+            return None
+
     def _get_profile_path(self, session_id: str) -> Path:
         """Return the path to the profile file."""
         safe_id = "".join(c for c in session_id if c.isalnum() or c in ('-', '_'))
