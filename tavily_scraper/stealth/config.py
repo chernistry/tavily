@@ -34,6 +34,14 @@ class StealthConfig(msgspec.Struct, omit_defaults=True):
         fingerprint_evasions:
             Whether to enable advanced fingerprinting evasions such as canvas,
             WebGL, and audio tweaks (applied in the advanced module).
+        mask_webrtc:
+            Whether to mask WebRTC surface (IP leakage, device list).
+        random_geolocation:
+            Whether to set a plausible geolocation on the context; useful when
+            aligning timezone/locale with a location.
+        viewport_jitter:
+            Whether to apply small viewport resizes during the session so that
+            window metrics are not perfectly static.
     """
 
     enabled: bool = False
@@ -44,3 +52,6 @@ class StealthConfig(msgspec.Struct, omit_defaults=True):
     simulate_human_behavior: bool = True
     block_resources: bool = True
     fingerprint_evasions: bool = True
+    mask_webrtc: bool = True
+    random_geolocation: bool = False
+    viewport_jitter: bool = True

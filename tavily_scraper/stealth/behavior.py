@@ -7,6 +7,7 @@ import random
 import string
 
 from playwright.async_api import Page
+from tavily_scraper.stealth.config import StealthConfig
 
 
 async def human_mouse_move(page: Page) -> None:
@@ -75,3 +76,30 @@ async def human_type(page: Page, selector: str, text: str) -> None:
         # Occasional longer pause as if thinking
         if random.random() < 0.06:
             await asyncio.sleep(random.uniform(0.25, 0.8))
+
+
+async def jitter_viewport(page: Page, config: StealthConfig) -> None:
+    """
+    Apply a small viewport change during the session to avoid static metrics.
+
+    This should only be used when viewport_jitter is enabled; jitter is small
+    enough to not break most responsive layouts.
+    """
+    if not (config.enabled and config.viewport_jitter):
+        return
+
+    viewport = page.viewport_size
+    if not viewport:
+        return
+
+    width = viewport["width"]
+    height = viewport["height"]
+
+    # Tiny jitter to avoid pixel-identical fingerprints
+    new_width = max(640, width + random.randint(-30, 30))
+    new_height = max(480, height + random.randint(-30, 30))
+
+    if new_width == width and new_height == height:
+        return
+
+    await page.set_viewport_size({"width": new_width, "height": new_height})

@@ -88,6 +88,7 @@ def build_context_options(config: StealthConfig) -> Dict[str, Any]:
     * Avoid Playwright's static defaults (UA and viewport)
     * Keep viewport/locale/timezone consistent enough to look like a real user
     * Introduce small jitter so multiple contexts are not pixel-identical
+    * Optionally set a plausible geolocation (with permission)
     """
 
     profile = _choose_profile()
@@ -113,5 +114,22 @@ def build_context_options(config: StealthConfig) -> Dict[str, Any]:
     options["locale"] = profile.locale
     options["timezone_id"] = profile.timezone_id
 
-    return options
+    if config.random_geolocation:
+        # Coarse, plausible geolocations; tied loosely to timezones above.
+        geo_pool = [
+            {"latitude": 40.7128, "longitude": -74.0060},   # New York
+            {"latitude": 34.0522, "longitude": -118.2437},  # LA
+            {"latitude": 52.5200, "longitude": 13.4050},    # Berlin
+            {"latitude": 37.7749, "longitude": -122.4194},  # SF
+        ]
+        geo = random.choice(geo_pool)
+        # Small jitter to avoid exact duplicates
+        geo = {
+            "latitude": geo["latitude"] + random.uniform(-0.02, 0.02),
+            "longitude": geo["longitude"] + random.uniform(-0.02, 0.02),
+            "accuracy": random.uniform(20, 120),
+        }
+        options["geolocation"] = geo
+        options["permissions"] = ["geolocation"]
 
+    return options
